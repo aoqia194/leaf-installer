@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.util;
+package net.aoqia.installer.util;
 
 import java.io.IOException;
 import java.net.URL;
