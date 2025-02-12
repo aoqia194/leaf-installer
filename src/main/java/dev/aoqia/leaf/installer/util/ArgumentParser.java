@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,69 +22,74 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ArgumentParser {
-	private final String[] args;
-	private Map<String, String> argMap;
-	//The command will be the first argument passed, and if it doesnt start with -
-	private String command = null;
+    private final String[] args;
+    private Map<String, String> argMap;
+    //The command will be the first argument passed, and if it doesnt start with -
+    private String command = null;
 
-	private ArgumentParser(String[] args) {
-		this.args = args;
-		parse();
-	}
+    private ArgumentParser(String[] args) {
+        this.args = args;
+        parse();
+    }
 
-	public String get(String argument) {
-		return argMap.get(argument);
+    public static ArgumentParser create(String[] args) {
+        return new ArgumentParser(args);
+    }
+
+    public String get(String argument) {
+		if (!argMap.containsKey(argument)) {
+			throw new IllegalArgumentException(String.format("Could not find %s in the arguments", argument));
+		}
+
+		String arg = argMap.get(argument);
+
+		if (arg == null) {
+			throw new IllegalArgumentException(String.format("Could not value for %s", argument));
+		}
+
+		return arg;
 	}
 
 	public String getOrDefault(String argument, Supplier<String> stringSuppler) {
-		String ret = argMap.get(argument);
-
-		if (ret == null) {
-			ret = stringSuppler.get();
+		if (!argMap.containsKey(argument)) {
+			return stringSuppler.get();
 		}
 
-		return ret;
-	}
+        return argMap.get(argument);
+    }
 
-	public boolean has(String argument) {
-		return argMap.containsKey(argument);
-	}
+    public boolean has(String argument) {
+        return argMap.containsKey(argument);
+    }
 
-	public Optional<String> getCommand() {
-		return command == null ? Optional.empty() : Optional.of(command);
-	}
+    public Optional<String> getCommand() {
+        return command == null ? Optional.empty() : Optional.of(command);
+    }
 
-	private void parse() {
-		argMap = new HashMap<>();
+    private void parse() {
+        argMap = new HashMap<>();
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].startsWith("-")) {
-				String key = args[i].substring(1);
-				String value = null;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith("-")) {
+                String key = args[i].substring(1);
+                String value = null;
 
-				if (i + 1 < args.length) {
-					value = args[i + 1];
+                // If it's an arg like -test=123
+                if (args[i].contains("=")) {
+                    final String truekey = key.substring(0, key.indexOf("="));
+                    value = key.substring(key.indexOf("=") + 1);
+                    argMap.put(truekey, value);
+                    continue;
+                }
 
-					if (value.startsWith("-")) {
-						argMap.put(key, "");
-						continue;
-					}
-
-					i++;
-				}
-
-				if (argMap.containsKey(key)) {
-					throw new IllegalArgumentException(String.format("Argument %s already passed", key));
-				}
+                if (argMap.containsKey(key)) {
+                    throw new IllegalArgumentException(String.format("Argument %s already passed", key));
+                }
 
 				argMap.put(key, value);
 			} else if (i == 0) {
 				command = args[i];
 			}
 		}
-	}
-
-	public static ArgumentParser create(String[] args) {
-		return new ArgumentParser(args);
 	}
 }

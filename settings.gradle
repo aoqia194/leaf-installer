@@ -9,5 +9,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'fabric-installer'
-
+rootProject.name = 'leaf-installer'

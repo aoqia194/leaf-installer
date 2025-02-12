@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,65 +13,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import mjson.Json;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
 
 public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion>> {
 	private final String name;
-	private final String metaPath;
-	private List<GameVersion> versions;
+    private final String metaPath;
+    private List<GameVersion> versions;
 
 	public MetaHandler(String name, String path) {
 		this.name = name;
-		this.metaPath = path;
-	}
+        this.metaPath = path;
+    }
 
 	public String getName() {
 		return name;
 	}
 
-	public void load() throws IOException {
-		Json json = LeafService.queryMetaJson(metaPath);
+    public void load() throws IOException {
+        final JsonNode versionTableNode = LeafService.queryMetaJson(metaPath);
+        final JsonNode versionsNode = versionTableNode.path("versions");
 
-		this.versions = json.asJsonList()
-				.stream()
-				.map(GameVersion::new)
-				.collect(Collectors.toList());
+        List<GameVersion> temp;
+        if (versionsNode.isArray()) {
+            final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
+                new TypeReference<List<GameManifestVersion>>() {});
 
-		complete(versions);
-	}
+            temp = versionsJson.stream()
+                .map(GameVersion::new)
+                .collect(Collectors.toList());
+        } else {
+            final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
+                new TypeReference<Map<String, Object>>() {});
 
-	public List<GameVersion> getVersions() {
-		return Collections.unmodifiableList(versions);
-	}
+            temp = new ArrayList<>();
+            versionsJson.forEach((key, value) -> {
+                temp.add(new GameVersion(key));
+            });
+        }
+        this.versions = temp;
 
-	public GameVersion getLatestVersion(boolean snapshot) {
-		if (versions.isEmpty()) throw new RuntimeException("no versions available at "+ metaPath);
+        complete(this.versions);
+    }
 
-		if (!snapshot) {
-			for (GameVersion version : versions) {
-				if (version.isStable()) return version;
-			}
+    public List<GameVersion> getVersions() {
+        return Collections.unmodifiableList(versions);
+    }
 
-			// nothing found, fall back to snapshot versions
-		}
+    public GameVersion getLatestVersion(boolean unstable) {
+        if (versions.isEmpty()) {
+            throw new RuntimeException("no versions available at " + metaPath);
+        }
 
-		return versions.get(0);
-	}
+        if (unstable) {
+            for (GameVersion version : versions) {
+                if (version.isUnstable()) {
+                    return version;
+                }
+            }
+        }
 
-	public GameVersion parseVersion(String value, boolean snapshot) {
+        return versions.get(0);
+    }
+
+	public GameVersion parseVersion(String value, boolean unstable) {
 		if (value == null || value.isEmpty() || value.equalsIgnoreCase("latest")) {
-			return getLatestVersion(snapshot);
+			return getLatestVersion(unstable);
 		} else {
 			for (GameVersion version : versions) {
-				if (version.version.equals(value)) {
+				if (version.id.equals(value)) {
 					return version;
 				}
 			}
@@ -80,21 +101,23 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 		}
 	}
 
-	public static final class GameVersion {
-		final String version;
-		final boolean stable;
+    public static class GameVersion {
+        String id;
 
-		public GameVersion(Json json) {
-			version = json.at("version").asString();
-			stable = json.at("stable").asBoolean();
-		}
+        public GameVersion(String id) {
+            this.id = id;
+        }
 
-		public String getVersion() {
-			return version;
-		}
+        public GameVersion(GameManifestVersion version) {
+            this.id = version.id;
+        }
 
-		public boolean isStable() {
-			return stable;
-		}
-	}
+        public String id() {
+            return id;
+        }
+
+        public boolean isUnstable() {
+            return id.contains("unstable") || id.startsWith("0.");
+        }
+    }
 }

@@ -13,38 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.leaf.installer.util;
+package dev.aoqia.leaf.installer.util.json;
 
-import java.awt.event.MouseEvent;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.swing.text.DefaultCaret;
-
-// Disables text selection and the caret.
-public class NoopCaret extends DefaultCaret {
-	public NoopCaret() {
-		setBlinkRate(0);
-		super.setSelectionVisible(false);
-	}
-
-	@Override
-	public int getDot() {
-		return 0;
-	}
-
-	@Override
-	public int getMark() {
-		return 0;
-	}
-
-	@Override
-	public void setSelectionVisible(boolean vis) {
-	}
-
-	@Override
-	protected void positionCaret(MouseEvent e) {
-	}
-
-	@Override
-	protected void moveCaret(MouseEvent e) {
-	}
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class VersionTableVersions {
+    // Can be Map<String, Object> or List<Object>
+    public Object versions;
 }

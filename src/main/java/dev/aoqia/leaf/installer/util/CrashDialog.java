@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dev.aoqia.leaf.installer.util;
 
 import java.awt.BorderLayout;
@@ -28,7 +27,7 @@ import javax.swing.WindowConstants;
 
 public class CrashDialog {
 	public CrashDialog(Throwable throwable) {
-		JFrame frame = new JFrame(String.format("Fabric installer %s has crashed!", CrashDialog.class.getPackage().getImplementationVersion()));
+		JFrame frame = new JFrame(String.format("Leaf installer %s has crashed!", CrashDialog.class.getPackage().getImplementationVersion()));
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BorderLayout());
 

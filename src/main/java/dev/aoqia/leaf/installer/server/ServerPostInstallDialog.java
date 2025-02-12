@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dev.aoqia.leaf.installer.server;
 
 import java.awt.Color;
@@ -54,15 +53,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import mjson.Json;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.LauncherMeta;
 import dev.aoqia.leaf.installer.util.Utils;
 
 @SuppressWarnings("serial")
 public class ServerPostInstallDialog extends JDialog {
-	private static final String launchCommand = "java -Xmx2G -jar fabric-server-launch.jar nogui";
+	private static final String launchCommand = "java -Xmx2G -jar leaf-server-launch.jar nogui";
 	private static final int MB = 1000000;
 
 	private final JPanel panel = new JPanel();
@@ -148,9 +147,9 @@ public class ServerPostInstallDialog extends JDialog {
 				text = reader.lines().collect(Collectors.joining("\n"));
 			}
 
-			Json json = Json.read(text);
-			String id = json.at("id").asString();
-			String name = json.at("name").asString();
+			JsonNode json = Main.OBJECT_MAPPER.readTree(text);
+			String id = json.get("id").asText();
+			String name = json.get("name").asText();
 
 			return minecraftVersion.equals(id) || minecraftVersion.equals(name);
 		} catch (IOException e) {
