@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer;
+package dev.aoqia.installer;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,7 +34,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.xml.stream.XMLStreamException;
 
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.installer.util.Utils;
 
 @SuppressWarnings("serial")
 public class InstallerGui extends JFrame {

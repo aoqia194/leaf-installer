@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer;
+package dev.aoqia.installer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,35 +23,35 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
-import mjson.Json;
-
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.installer.util.Utils;
 
 public final class LoaderVersion {
-	public final String name;
-	public final Path path;
+    public final String name;
+    public final Path path;
 
-	public LoaderVersion(String name) {
-		this.name = name;
-		this.path = null;
-	}
+    public LoaderVersion(String name) {
+        this.name = name;
+        this.path = null;
+    }
 
-	public LoaderVersion(Path path) throws IOException {
-		try (ZipFile zf = new ZipFile(path.toFile())) {
-			ZipEntry entry = zf.getEntry("fabric.mod.json");
-			if (entry == null) throw new FileNotFoundException("fabric.mod.json");
+    public LoaderVersion(Path path) throws IOException {
+        try (ZipFile zf = new ZipFile(path.toFile())) {
+            ZipEntry entry = zf.getEntry("leaf.mod.json");
+            if (entry == null) {
+                throw new FileNotFoundException("leaf.mod.json");
+            }
 
-			String modJsonContent;
+            String modJsonContent;
 
-			try (InputStream is = zf.getInputStream(entry)) {
-				modJsonContent = Utils.readString(is);
-			}
+            try (InputStream is = zf.getInputStream(entry)) {
+                modJsonContent = Utils.readString(is);
+            }
 
-			this.name = Json.read(modJsonContent).at("version").asString();
-		} catch (ZipError e) {
-			throw new IOException(e);
-		}
+            this.name = Main.OBJECT_MAPPER.readTree(modJsonContent).get("version").asText();
+        } catch (ZipError e) {
+            throw new IOException(e);
+        }
 
-		this.path = path;
-	}
+        this.path = path;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package dev.aoqia.installer.util.json;
 
-package net.fabricmc.installer.launcher;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class MojangLauncherHelperWrapper {
-	public static boolean isMojangLauncherOpen() {
-		if (NativesHelper.loadSafelyIfCompatible()) {
-			return MojangLauncherHelper.isMojangLauncherOpen();
-		}
-
-		return false;
-	}
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class VersionTableVersions {
+    // Can be Map<String, Object> or List<Object>
+    public Object versions;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,123 +13,133 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.aoqia.installer.util;
+package dev.aoqia.installer.util;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 
-import mjson.Json;
+import com.fasterxml.jackson.databind.JsonNode;
+import dev.aoqia.installer.Main;
 
-public final class FabricService {
-	private static int activeIndex = 0; // index into INSTANCES or -1 if set to a fixed service
-	private static FabricService fixedService;
+public final class LeafService {
+    private static int activeIndex = 0; // index into INSTANCES or -1 if set to a fixed service
+    private static LeafService fixedService;
 
-	private final String meta;
-	private final String maven;
+    private final String meta;
+    private final String maven;
 
-	/**
-	 * Query Fabric Meta path and decode as JSON.
-	 */
-	public static Json queryMetaJson(String path) throws IOException {
-		return invokeWithFallbacks((service, arg) -> Json.read(Utils.readString(new URL(service.meta + arg))), path);
-	}
+    LeafService(String meta, String maven) {
+        this.meta = meta;
+        this.maven = maven;
+    }
 
-	/**
-	 * Query and decode JSON from url, substituting Fabric Maven with fallbacks or overrides.
-	 */
-	public static Json queryJsonSubstitutedMaven(String url) throws IOException {
-		if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-			return Json.read(Utils.readString(new URL(url)));
-		}
+    /**
+     * Query Leaf Meta path and decode as JSON.
+     */
+    public static JsonNode queryMetaJson(String path) throws IOException {
+        return invokeWithFallbacks((service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(
+            service.meta + arg))), path);
+    }
 
-		String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
+    /**
+     * Query and decode JSON from url, substituting Fabric Maven with fallbacks or overrides.
+     */
+    public static JsonNode queryJsonSubstitutedMaven(String url) throws IOException {
+        if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
+            return Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(url)));
+        }
 
-		return invokeWithFallbacks((service, arg) -> Json.read(Utils.readString(new URL(service.maven + arg))), path);
-	}
+        String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
-	/**
-	 * Download url to file, substituting Fabric Maven with fallbacks or overrides.
-	 */
-	public static void downloadSubstitutedMaven(String url, Path out) throws IOException {
-		if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-			Utils.downloadFile(new URL(url), out);
-			return;
-		}
+        return invokeWithFallbacks((service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(
+            service.maven + arg))), path);
+    }
 
-		String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
+    /**
+     * Download url to file, substituting Fabric Maven with fallbacks or overrides.
+     */
+    public static void downloadSubstitutedMaven(String url, Path out) throws IOException {
+        if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
+            Utils.downloadFile(new URL(url), out);
+            return;
+        }
 
-		invokeWithFallbacks((service, arg) -> {
-			Utils.downloadFile(new URL(service.maven + arg), out);
-			return null;
-		}, path);
-	}
+        String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
-	private static <A, R> R invokeWithFallbacks(Handler<A, R> handler, A arg) throws IOException {
-		if (fixedService != null) return handler.apply(fixedService, arg);
+        invokeWithFallbacks((service, arg) -> {
+            Utils.downloadFile(new URL(service.maven + arg), out);
+            return null;
+        }, path);
+    }
 
-		int index = activeIndex;
-		IOException exc = null;
+    private static <A, R> R invokeWithFallbacks(Handler<A, R> handler, A arg) throws IOException {
+        if (fixedService != null) {
+            return handler.apply(fixedService, arg);
+        }
 
-		do {
-			FabricService service = Reference.FABRIC_SERVICES[index];
+        int index = activeIndex;
+        IOException exc = null;
 
-			try {
-				R ret = handler.apply(service, arg);
-				activeIndex = index;
+        do {
+            LeafService service = Reference.LEAF_SERVICES[index];
 
-				return ret;
-			} catch (IOException e) {
-				System.out.println("service "+service+" failed: "+e);
+            try {
+                R ret = handler.apply(service, arg);
+                activeIndex = index;
 
-				if (exc == null) {
-					exc = e;
-				} else {
-					exc.addSuppressed(e);
-				}
-			}
+                return ret;
+            } catch (IOException e) {
+                System.out.println("service " + service + " failed: " + e);
 
-			index = (index + 1) % Reference.FABRIC_SERVICES.length;
-		} while (index != activeIndex);
+                if (exc == null) {
+                    exc = e;
+                } else {
+                    exc.addSuppressed(e);
+                }
+            }
 
-		throw exc;
-	}
+            index = (index + 1) % Reference.LEAF_SERVICES.length;
+        } while (index != activeIndex);
 
-	private interface Handler<A, R> {
-		R apply(FabricService service, A arg) throws IOException;
-	}
+        throw exc;
+    }
 
-	/**
-	 * Configure fixed service urls, disabling fallbacks or the defaults.
-	 */
-	public static void setFixed(String metaUrl, String mavenUrl) {
-		if (metaUrl == null && mavenUrl == null) throw new NullPointerException("both meta and maven are null");
+    /**
+     * Configure fixed service urls, disabling fallbacks or the defaults.
+     */
+    public static void setFixed(String metaUrl, String mavenUrl) {
+        if (metaUrl == null && mavenUrl == null) {
+            throw new NullPointerException("both meta and maven are null");
+        }
 
-		if (metaUrl == null) metaUrl = Reference.DEFAULT_META_SERVER;
-		if (mavenUrl == null) mavenUrl = Reference.DEFAULT_MAVEN_SERVER;
+        if (metaUrl == null) {
+            metaUrl = Reference.DEFAULT_META_SERVER;
+        }
+        if (mavenUrl == null) {
+            mavenUrl = Reference.DEFAULT_MAVEN_SERVER;
+        }
 
-		activeIndex = -1;
-		fixedService = new FabricService(metaUrl, mavenUrl);
-	}
+        activeIndex = -1;
+        fixedService = new LeafService(metaUrl, mavenUrl);
+    }
 
-	FabricService(String meta, String maven) {
-		this.meta = meta;
-		this.maven = maven;
-	}
+    public String getMetaUrl() {
+        return meta;
+    }
 
-	public String getMetaUrl() {
-		return meta;
-	}
+    public String getMavenUrl() {
+        return maven;
+    }
 
-	public String getMavenUrl() {
-		return maven;
-	}
+    @Override
+    public String toString() {
+        return "LeafService{"
+               + "meta='" + meta + '\''
+               + ", maven='" + maven + "'}";
+    }
 
-	@Override
-	public String toString() {
-		return "FabricService{"
-				+ "meta='" + meta + '\''
-				+ ", maven='" + maven + "'}";
-	}
+    private interface Handler<A, R> {
+        R apply(LeafService service, A arg) throws IOException;
+    }
 }

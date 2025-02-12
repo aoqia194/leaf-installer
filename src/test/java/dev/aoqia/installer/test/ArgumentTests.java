@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.test;
+package dev.aoqia.installer.test;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import net.fabricmc.installer.util.ArgumentParser;
+import dev.aoqia.installer.util.ArgumentParser;
 
 public class ArgumentTests {
 	@Test
 	public void test() {
-		String[] args = new String[]{"command", "-arg1", "Hello", "-arg2", "-anotherArg", "123"};
+		String[] args = new String[]{"command", "-debug", "-cachedir=C:\\SomePath\\SomeFolder", "-novoip"};
 		ArgumentParser handler = ArgumentParser.create(args);
 
-		Assert.assertTrue(handler.has("arg1"));
-		Assert.assertEquals(handler.get("arg1"), "Hello");
+		Assert.assertTrue(handler.has("debug"));
+		Assert.assertEquals("C:\\SomePath\\SomeFolder", handler.get("cachedir"));
 
-		Assert.assertEquals(handler.getOrDefault("arg3", () -> "World"), "World");
+		Assert.assertEquals("World", handler.getOrDefault("arg3", () -> "World"));
 
-		Assert.assertTrue(handler.has("arg2"));
-		Assert.assertFalse(handler.has("arg3"));
+		Assert.assertTrue(handler.has("novoip"));
+		Assert.assertFalse(handler.has("aitest"));
 
-		Assert.assertEquals(handler.getCommand().get(), "command");
+		Assert.assertEquals("command", handler.getCommand().get());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testBadArgs() {
-		ArgumentParser.create(new String[]{"-arg1", "Hello", "-arg1"});
+		ArgumentParser.create(new String[]{"-arg1=Hello", "-arg1"});
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testUnknownArg() {
-		ArgumentParser.create(new String[]{"-arg1", "Hello"}).get("arg2");
+		ArgumentParser.create(new String[]{"-arg1=Hello"}).get("arg2");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -55,9 +54,9 @@ public class ArgumentTests {
 
 	@Test
 	public void testCommands() {
-		Assert.assertTrue(ArgumentParser.create(new String[]{"command", "-arg1", "Hello"}).getCommand().isPresent());
-		Assert.assertEquals(ArgumentParser.create(new String[]{"command", "-arg1", "Hello"}).getCommand().get(), "command");
+		Assert.assertTrue(ArgumentParser.create(new String[]{"command", "-arg1=Hello"}).getCommand().isPresent());
+		Assert.assertEquals(ArgumentParser.create(new String[]{"command", "-arg1=Hello"}).getCommand().get(), "command");
 
-		Assert.assertFalse(ArgumentParser.create(new String[]{"-arg1", "Hello"}).getCommand().isPresent());
+		Assert.assertFalse(ArgumentParser.create(new String[]{"-arg1=Hello"}).getCommand().isPresent());
 	}
 }

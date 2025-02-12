@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.server;
+package dev.aoqia.installer.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -47,18 +46,18 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import mjson.Json;
-
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.FabricService;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Library;
-import net.fabricmc.installer.util.Utils;
+import com.fasterxml.jackson.databind.JsonNode;
+import dev.aoqia.installer.LoaderVersion;
+import dev.aoqia.installer.Main;
+import dev.aoqia.installer.util.LeafService;
+import dev.aoqia.installer.util.InstallerProgress;
+import dev.aoqia.installer.util.Library;
+import dev.aoqia.installer.util.Utils;
 
 public class ServerInstaller {
 	private static final String servicesDir = "META-INF/services/";
 	private static final String manifestPath = "META-INF/MANIFEST.MF";
-	public static final String DEFAULT_LAUNCH_JAR_NAME = "fabric-server-launch.jar";
+	public static final String DEFAULT_LAUNCH_JAR_NAME = "leaf-server-launch.jar";
 	private static final Pattern SIGNATURE_FILE_PATTERN = Pattern.compile("META-INF/[^/]+\\.(SF|DSA|RSA|EC)");
 
 	public static void install(Path dir, LoaderVersion loaderVersion, String gameVersion, InstallerProgress progress) throws IOException {
@@ -71,7 +70,7 @@ public class ServerInstaller {
 
 		Files.createDirectories(dir);
 
-		Path libsDir = dir.resolve("libraries");
+		Path libsDir = dir.resolve("java");
 		Files.createDirectories(libsDir);
 
 		progress.updateProgress(Utils.BUNDLE.getString("progress.download.libraries"));
@@ -80,35 +79,35 @@ public class ServerInstaller {
 		String mainClassMeta;
 
 		if (loaderVersion.path == null) { // loader jar unavailable, grab everything from meta
-			Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
+			JsonNode json = LeafService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
 
-			for (Json libraryJson : json.at("libraries").asJsonList()) {
+			for (var libraryJson : json.get("libraries")) {
 				libraries.add(new Library(libraryJson));
 			}
 
-			mainClassMeta = json.at("mainClass").asString();
+			mainClassMeta = json.get("mainClass").asText();
 		} else { // loader jar available, generate library list from it
-			libraries.add(new Library(String.format("net.fabricmc:fabric-loader:%s", loaderVersion.name), null, loaderVersion.path));
-			libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
+			libraries.add(new Library(String.format("dev.aoqia:leaf-loader:%s", loaderVersion.name), null, loaderVersion.path));
+//			libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
 
 			try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
-				ZipEntry entry = zf.getEntry("fabric-installer.json");
-				Json json = Json.read(Utils.readString(zf.getInputStream(entry)));
-				Json librariesElem = json.at("libraries");
+				ZipEntry entry = zf.getEntry("leaf-installer.json");
+                JsonNode json = Main.OBJECT_MAPPER.readTree(Utils.readString(zf.getInputStream(entry)));
 
-				for (Json libraryJson : librariesElem.at("common").asJsonList()) {
+				var librariesElem = json.get("libraries");
+				for (var libraryJson : librariesElem.get("common")) {
 					libraries.add(new Library(libraryJson));
 				}
 
-				for (Json libraryJson : librariesElem.at("server").asJsonList()) {
+				for (var libraryJson : librariesElem.get("server")) {
 					libraries.add(new Library(libraryJson));
 				}
 
-				mainClassMeta = json.at("mainClass").at("server").asString();
+				mainClassMeta = json.path("mainClass").path("server").asText();
 			}
 		}
 
-		String mainClassManifest = "net.fabricmc.loader.launch.server.FabricServerLauncher";
+		String mainClassManifest = "dev.aoqia.loader.launch.server.LeafServerLauncher";
 		List<Path> libraryFiles = new ArrayList<>();
 
 		for (Library library : libraries) {
@@ -116,7 +115,7 @@ public class ServerInstaller {
 
 			if (library.inputPath == null) {
 				progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.name}));
-				FabricService.downloadSubstitutedMaven(library.getURL(), libraryFile);
+				LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
 			} else {
 				Files.createDirectories(libraryFile.getParent());
 				Files.copy(library.inputPath, libraryFile, StandardCopyOption.REPLACE_EXISTING);
@@ -124,7 +123,7 @@ public class ServerInstaller {
 
 			libraryFiles.add(libraryFile);
 
-			if (library.name.matches("net\\.fabricmc:fabric-loader:.*")) {
+			if (library.name.matches("net\\.aoqia:leaf-loader:.*")) {
 				try (JarFile jarFile = new JarFile(libraryFile.toFile())) {
 					Manifest manifest = jarFile.getManifest();
 					mainClassManifest = manifest.getMainAttributes().getValue("Main-Class");
@@ -134,7 +133,8 @@ public class ServerInstaller {
 
 		progress.updateProgress(Utils.BUNDLE.getString("progress.generating.launch.jar"));
 
-		boolean shadeLibraries = Utils.compareVersions(loaderVersion.name, "0.12.5") <= 0; // FabricServerLauncher in Fabric Loader 0.12.5 and earlier requires shading the libs into the launch jar
+//		boolean shadeLibraries = Utils.compareVersions(loaderVersion.name, "0.12.5") <= 0; // FabricServerLauncher in Fabric Loader 0.12.5 and earlier requires shading the libs into the launch jar
+        final boolean shadeLibraries = false;
 		makeLaunchJar(launchJar, mainClassMeta, mainClassManifest, libraryFiles, shadeLibraries, progress);
 	}
 
@@ -164,8 +164,8 @@ public class ServerInstaller {
 
 			zipOutputStream.closeEntry();
 
-			addedEntries.add("fabric-server-launch.properties");
-			zipOutputStream.putNextEntry(new ZipEntry("fabric-server-launch.properties"));
+			addedEntries.add("leaf-server-launch.properties");
+			zipOutputStream.putNextEntry(new ZipEntry("leaf-server-launch.properties"));
 			zipOutputStream.write(("launch.mainClass=" + launchMainClass + "\n").getBytes(StandardCharsets.UTF_8));
 			zipOutputStream.closeEntry();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,74 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.util;
+package dev.aoqia.installer.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import mjson.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class LauncherMeta {
-	private static LauncherMeta launcherMeta = null;
+public record LauncherMeta(List<Version> versions) {
+    private static LauncherMeta launcherMeta = null;
 
-	public static LauncherMeta getLauncherMeta() throws IOException {
-		if (launcherMeta == null) {
-			launcherMeta = load();
-		}
+    public static LauncherMeta getLauncherMeta() throws IOException {
+        if (launcherMeta == null) {
+            launcherMeta = load();
+        }
 
-		return launcherMeta;
-	}
+        return launcherMeta;
+    }
 
-	private static LauncherMeta load() throws IOException {
-		List<Version> versions = new ArrayList<>();
-		versions.addAll(getVersionsFromUrl(Reference.MINECRAFT_LAUNCHER_MANIFEST));
-		versions.addAll(getVersionsFromUrl(Reference.EXPERIMENTAL_LAUNCHER_MANIFEST));
+    private static LauncherMeta load() throws IOException {
+        List<Version> versions = new ArrayList<>(getVersionsFromUrl(Reference.ZOMBOID_VERSION_MANIFEST));
+        return new LauncherMeta(versions);
+    }
 
-		return new LauncherMeta(versions);
-	}
+    private static List<Version> getVersionsFromUrl(String url) throws IOException {
+        JsonNode json = LeafService.queryJsonSubstitutedMaven(url);
 
-	private static List<Version> getVersionsFromUrl(String url) throws IOException {
-		Json json = FabricService.queryJsonSubstitutedMaven(url);
+        List<Version> versions = new ArrayList<>();
+        json.path("versions").forEach(version -> versions.add(new Version(version)));
+        return versions;
+    }
 
-		List<Version> versions = json.at("versions").asJsonList()
-				.stream()
-				.map(Version::new)
-				.collect(Collectors.toList());
+    public Version getVersion(String version) {
+        return versions.stream().filter(v -> v.id.equals(version)).findFirst().orElse(null);
+    }
 
-		return versions;
-	}
+    public static class Version {
+        public final String id;
+        public final String url;
 
-	public final List<Version> versions;
+        private VersionMeta versionMeta = null;
 
-	public LauncherMeta(List<Version> versions) {
-		this.versions = versions;
-	}
+        public Version(JsonNode json) {
+            this.id = json.path("id").textValue();
+            this.url = json.path("url").textValue();
+        }
 
-	public static class Version {
-		public final String id;
-		public final String url;
+        public VersionMeta getVersionMeta() throws IOException {
+            if (versionMeta == null) {
+                JsonNode json = LeafService.queryJsonSubstitutedMaven(url);
+                versionMeta = new VersionMeta(json);
+            }
 
-		private VersionMeta versionMeta = null;
-
-		public Version(Json json) {
-			this.id = json.at("id").asString();
-			this.url = json.at("url").asString();
-		}
-
-		public VersionMeta getVersionMeta() throws IOException {
-			if (versionMeta == null) {
-				Json json = FabricService.queryJsonSubstitutedMaven(url);
-				versionMeta = new VersionMeta(json);
-			}
-
-			return versionMeta;
-		}
-	}
-
-	public Version getVersion(String version) {
-		return versions.stream().filter(v -> v.id.equals(version)).findFirst().orElse(null);
-	}
+            return versionMeta;
+        }
+    }
 }

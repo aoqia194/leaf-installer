@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.util;
+package dev.aoqia.installer.util;
 
 import java.util.Locale;
 
 public enum OperatingSystem {
-	WINDOWS,
-	MACOS,
-	LINUX;
+    WINDOWS,
+    MACOS,
+    LINUX;
 
-	public static final OperatingSystem CURRENT = getCurrent();
+    public static final OperatingSystem CURRENT = getCurrent();
 
-	private static OperatingSystem getCurrent() {
-		String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+    private static OperatingSystem getCurrent() {
+        String osName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
-		if (osName.contains("win")) {
-			return WINDOWS;
-		} else if (osName.contains("mac")) {
-			return MACOS;
-		} else {
-			return LINUX;
-		}
-	}
+        if (osName.contains("win")) {
+            return WINDOWS;
+        } else if (osName.contains("mac")) {
+            return MACOS;
+        } else {
+            return LINUX;
+        }
+    }
+
+    public String toShortString() {
+        var cur = this.name();
+        if (cur.equals("WINDOWS")) {
+            return "win";
+        } else if (cur.equals("MACOS")) {
+            return "mac";
+        } else {
+            return "linux";
+        }
+    }
 }

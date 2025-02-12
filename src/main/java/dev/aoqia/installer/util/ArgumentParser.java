@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.util;
+package dev.aoqia.installer.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,83 +22,80 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ArgumentParser {
-	private String[] args;
-	private Map<String, String> argMap;
-	//The command will be the first argument passed, and if it doesnt start with -
-	private String command = null;
+    private final String[] args;
+    private Map<String, String> argMap;
+    //The command will be the first argument passed, and if it doesnt start with -
+    private String command = null;
 
-	private ArgumentParser(String[] args) {
-		this.args = args;
-		parse();
-	}
+    private ArgumentParser(String[] args) {
+        this.args = args;
+        parse();
+    }
 
-	public String get(String argument) {
-		if (!argMap.containsKey(argument)) {
-			throw new IllegalArgumentException(String.format("Could not find %s in the arguments", argument));
-		}
+    public static ArgumentParser create(String[] args) {
+        return new ArgumentParser(args);
+    }
 
-		String arg = argMap.get(argument);
+    public String get(String argument) {
+        if (!argMap.containsKey(argument)) {
+            throw new IllegalArgumentException(String.format("Could not find %s in the arguments", argument));
+        }
 
-		if (arg == null) {
-			throw new IllegalArgumentException(String.format("Could not value for %s", argument));
-		}
+        String arg = argMap.get(argument);
 
-		return arg;
-	}
+        if (arg == null) {
+            throw new IllegalArgumentException(String.format("Could not value for %s", argument));
+        }
 
-	public String getOrDefault(String argument, Supplier<String> stringSuppler) {
-		if (!argMap.containsKey(argument)) {
-			return stringSuppler.get();
-		}
+        return arg;
+    }
 
-		return argMap.get(argument);
-	}
+    public String getOrDefault(String argument, Supplier<String> stringSuppler) {
+        if (!argMap.containsKey(argument)) {
+            return stringSuppler.get();
+        }
 
-	public boolean has(String argument) {
-		return argMap.containsKey(argument);
-	}
+        return argMap.get(argument);
+    }
 
-	public void ifPresent(String argument, Consumer<String> consumer) {
-		if (has(argument)) {
-			consumer.accept(get(argument));
-		}
-	}
+    public boolean has(String argument) {
+        return argMap.containsKey(argument);
+    }
 
-	public Optional<String> getCommand() {
-		return command == null ? Optional.empty() : Optional.of(command);
-	}
+    public void ifPresent(String argument, Consumer<String> consumer) {
+        if (has(argument)) {
+            consumer.accept(get(argument));
+        }
+    }
 
-	private void parse() {
-		argMap = new HashMap<>();
+    public Optional<String> getCommand() {
+        return command == null ? Optional.empty() : Optional.of(command);
+    }
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].startsWith("-")) {
-				String key = args[i].substring(1);
-				String value = null;
+    private void parse() {
+        argMap = new HashMap<>();
 
-				if (i + 1 < args.length) {
-					value = args[i + 1];
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith("-")) {
+                String key = args[i].substring(1);
+                String value = null;
 
-					if (value.startsWith("-")) {
-						argMap.put(key, "");
-						continue;
-					}
+                // If it's an arg like -test=123
+                if (args[i].contains("=")) {
+                    final String truekey = key.substring(0, key.indexOf("="));
+                    value = key.substring(key.indexOf("=") + 1);
+                    argMap.put(truekey, value);
+                    continue;
+                }
 
-					i++;
-				}
+                if (argMap.containsKey(key)) {
+                    throw new IllegalArgumentException(String.format("Argument %s already passed", key));
+                }
 
-				if (argMap.containsKey(key)) {
-					throw new IllegalArgumentException(String.format("Argument %s already passed", key));
-				}
-
-				argMap.put(key, value);
-			} else if (i == 0) {
-				command = args[i];
-			}
-		}
-	}
-
-	public static ArgumentParser create(String[] args) {
-		return new ArgumentParser(args);
-	}
+                argMap.put(key, value);
+            } else if (i == 0) {
+                command = args[i];
+            }
+        }
+    }
 }

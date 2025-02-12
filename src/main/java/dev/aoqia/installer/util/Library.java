@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.util;
+package dev.aoqia.installer.util;
 
 import java.io.File;
 import java.nio.file.Path;
 
-import mjson.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class Library {
 	public final String name;
@@ -32,9 +31,9 @@ public class Library {
 		this.inputPath = inputPath;
 	}
 
-	public Library(Json json) {
-		name = json.at("name").asString();
-		url = json.at("url").asString();
+	public Library(JsonNode json) {
+		name = json.path("name").asText();
+		url = json.path("url").asText();
 		inputPath = null;
 	}
 

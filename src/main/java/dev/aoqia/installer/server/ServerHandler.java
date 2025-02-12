@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package dev.aoqia.installer.server;
 
-package net.fabricmc.installer.server;
-
-import java.awt.Cursor;
-import java.awt.Desktop;
-import java.awt.GridBagConstraints;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -30,67 +27,62 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import net.fabricmc.installer.Handler;
-import net.fabricmc.installer.InstallerGui;
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.ArgumentParser;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Reference;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.installer.Handler;
+import dev.aoqia.installer.InstallerGui;
+import dev.aoqia.installer.LoaderVersion;
+import dev.aoqia.installer.util.ArgumentParser;
+import dev.aoqia.installer.util.InstallerProgress;
+import dev.aoqia.installer.util.Reference;
+import dev.aoqia.installer.util.Utils;
 
 public class ServerHandler extends Handler {
-	@Override
-	public String name() {
-		return "Server";
-	}
+    @Override
+    public String name() {
+        return "Server";
+    }
 
-	@Override
-	public void install() {
-		String gameVersion = (String) gameVersionComboBox.getSelectedItem();
-		LoaderVersion loaderVersion = queryLoaderVersion();
-		if (loaderVersion == null) return;
+    @Override
+    public void install() {
+        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
+        LoaderVersion loaderVersion = queryLoaderVersion();
+        if (loaderVersion == null) {
+            return;
+        }
 
-		new Thread(() -> {
-			try {
-				ServerInstaller.install(Paths.get(installLocation.getText()).toAbsolutePath(), loaderVersion, gameVersion, this);
-				ServerPostInstallDialog.show(this);
-			} catch (Exception e) {
-				error(e);
-			}
+        new Thread(() -> {
+            try {
+                ServerInstaller.install(Paths.get(installLocation.getText()).toAbsolutePath(),
+                    loaderVersion,
+                    gameVersion,
+                    this);
+                ServerPostInstallDialog.show(this);
+            } catch (Exception e) {
+                error(e);
+            }
 
-			buttonInstall.setEnabled(true);
-		}).start();
-	}
+            buttonInstall.setEnabled(true);
+        }).start();
+    }
 
-	@Override
-	public void installCli(ArgumentParser args) throws Exception {
-		Path dir = Paths.get(args.getOrDefault("dir", () -> ".")).toAbsolutePath().normalize();
+    @Override
+    public void installCli(ArgumentParser args) throws Exception {
+        Path dir = Paths.get(args.getOrDefault("dir", () -> ".")).toAbsolutePath().normalize();
 
-		if (!Files.isDirectory(dir)) {
-			throw new FileNotFoundException("Server directory not found at " + dir + " or not a directory");
-		}
+        if (!Files.isDirectory(dir)) {
+            throw new FileNotFoundException("Server directory not found at " + dir + " or not a directory");
+        }
 
-		LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
-		String gameVersion = getGameVersion(args);
-		ServerInstaller.install(dir, loaderVersion, gameVersion, InstallerProgress.CONSOLE);
-
-		if (args.has("downloadMinecraft")) {
-			InstallerProgress.CONSOLE.updateProgress(Utils.BUNDLE.getString("progress.download.minecraft"));
-			Path serverJar = dir.resolve("server.jar");
-			MinecraftServerDownloader downloader = new MinecraftServerDownloader(gameVersion);
-			downloader.downloadMinecraftServer(serverJar);
-			InstallerProgress.CONSOLE.updateProgress(Utils.BUNDLE.getString("progress.done"));
-		}
-
-		InstallerProgress.CONSOLE.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.done.start.server")).format(new Object[]{ServerInstaller.DEFAULT_LAUNCH_JAR_NAME}));
-	}
+        LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
+        String gameVersion = getGameVersion(args);
+        ServerInstaller.install(dir, loaderVersion, gameVersion, InstallerProgress.CONSOLE);
+        InstallerProgress.CONSOLE.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.done.start" +
+                                                                                          ".server")).format(
+            new Object[] { ServerInstaller.DEFAULT_LAUNCH_JAR_NAME }));
+    }
 
 	@Override
 	public String cliHelp() {
-		return "-dir <install dir, default current dir> -mcversion <minecraft version, default latest> -loader <loader version, default latest> -downloadMinecraft";
+		return "-dir <install dir, default current dir> -pzversion <zomboid version, default latest> -loader <loader version, default latest>";
 	}
 
 	@Override
@@ -98,25 +90,10 @@ public class ServerHandler extends Handler {
 		if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 			return;
 		}
+    }
 
-		JLabel label = new JLabel(String.format("<html><a href=\"\">%s</a></html>", Utils.BUNDLE.getString("prompt.server.launcher")));
-		label.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		label.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
-					Desktop.getDesktop().browse(new URI(Reference.SERVER_LAUNCHER_URL));
-				} catch (IOException | URISyntaxException ex) {
-					ex.printStackTrace();
-				}
-			}
-		});
-
-		addRow(pane, c, null, label);
-	}
-
-	@Override
-	public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
-		installLocation.setText(Paths.get(".").toAbsolutePath().normalize().toString());
-	}
+    @Override
+    public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
+        installLocation.setText(Paths.get(".").toAbsolutePath().normalize().toString());
+    }
 }

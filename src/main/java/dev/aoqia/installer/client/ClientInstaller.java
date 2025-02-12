@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
+ * Copyright (c) 2016-2025 FabricMC, aoqia
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,62 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.fabricmc.installer.client;
+package dev.aoqia.installer.client;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 
-import mjson.Json;
-
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.FabricService;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Library;
-import net.fabricmc.installer.util.Reference;
-import net.fabricmc.installer.util.Utils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.aoqia.installer.LoaderVersion;
+import dev.aoqia.installer.Main;
+import dev.aoqia.installer.util.*;
 
 public class ClientInstaller {
-	public static String install(Path mcDir, String gameVersion, LoaderVersion loaderVersion, InstallerProgress progress) throws IOException {
-		System.out.println("Installing " + gameVersion + " with fabric " + loaderVersion.name);
+    public static String install(Path gameDir,
+        String gameVersion,
+        LoaderVersion loaderVersion,
+        boolean createProfile,
+        InstallerProgress progress) throws IOException {
+        System.out.println(
+            "Installing " + gameVersion + " with leaf " + loaderVersion.name);
 
-		String profileName = String.format("%s-%s-%s", Reference.LOADER_NAME, loaderVersion.name, gameVersion);
+        String configName = String.format("%s-%s-%s", Reference.LOADER_NAME,
+            loaderVersion.name, gameVersion);
 
-		Path versionsDir = mcDir.resolve("versions");
-		Path profileDir = versionsDir.resolve(profileName);
-		Path profileJson = profileDir.resolve(profileName + ".json");
+        JsonNode loaderVersionJson = LeafService.queryMetaJson("loader_versions.json")
+            .path("versions")
+            .path(loaderVersion.name);
 
-		if (!Files.exists(profileDir)) {
-			Files.createDirectories(profileDir);
-		}
+        // Clone default bootstrapper config and load it.
+        // TODO: Handle other OS.
+        if (createProfile) {
+            Path bootstrapperConfig = gameDir.resolve(configName + ".json");
+            Path origConfig;
+            if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
+                origConfig = gameDir.resolve("ProjectZomboid64.json");
+            } else {
+                throw new RuntimeException(
+                    "Multi-OS bootstrapper config not implemented yet");
+            }
 
-		Path profileJar = profileDir.resolve(profileName + ".jar");
-		Files.deleteIfExists(profileJar);
+            if (Files.exists(bootstrapperConfig)) {
+                throw new RuntimeException(
+                    "Bootstrapper config %s already exists.".formatted(
+                        bootstrapperConfig));
+            }
+            Files.copy(origConfig, bootstrapperConfig);
 
-		Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/profile/json", gameVersion, loaderVersion.name));
-		Files.write(profileJson, json.toString().getBytes(StandardCharsets.UTF_8));
+            // Load version config and modify cloned bootstrapper config, then save to new
+            // config.
+            JsonNode bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
+                Utils.readString(bootstrapperConfig));
+            ((ObjectNode) bootstrapperConfigJson).setAll(
+                (ObjectNode) loaderVersionJson.path("config"));
 
-		/*
-		Downloading the libraries isn't strictly necessary as the launcher will do it for us.
-		Do it anyway in case the launcher fails, we know we have a working connection to maven here.
-		 */
-		Path libsDir = mcDir.resolve("libraries");
+            // Always remove these stupid JVM properties that shouldn't exist.
+            ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
+            assert vmArgs.isArray();
+            for (int i = 0; i < vmArgs.size(); ++i) {
+                final var node = vmArgs.get(i);
+                if (node.asText().startsWith("-Xms") ||
+                    node.asText().startsWith("-Xmx")) {
+                    vmArgs.remove(i);
+                }
+            }
 
-		for (Json libraryJson : json.at("libraries").asJsonList()) {
-			Library library = new Library(libraryJson);
-			Path libraryFile = libsDir.resolve(library.getPath());
-			String url = library.getURL();
+            Files.writeString(bootstrapperConfig, bootstrapperConfigJson.toString());
+        }
 
-			//System.out.println("Downloading "+url+" to "+libraryFile);
-			progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.name}));
-			FabricService.downloadSubstitutedMaven(url, libraryFile);
-		}
+        for (var libraryJson : loaderVersionJson.path("libraries")) {
+            Library library = new Library(libraryJson);
+            Path libraryFile = gameDir.resolve(library.getPath());
+            String url = library.getURL();
 
-		progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
+            //System.out.println("Downloading "+url+" to "+libraryFile);
+            progress.updateProgress(new MessageFormat(
+                Utils.BUNDLE.getString("progress.download.library.entry")).format(
+                new Object[] { library.name }));
+            LeafService.downloadSubstitutedMaven(url, libraryFile);
+        }
 
-		return profileName;
-	}
+        progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
+
+        return configName;
+    }
 }
