@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-output
-          path: build/libs/
+          path: build/
           retention-days: 7
           if-no-files-found: error
           overwrite: true

@@ -22,7 +22,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-          path: build/libs/
+          path: build/
 
       - name: Release
         env:
