@@ -229,7 +229,7 @@ public class ServerPostInstallDialog extends JDialog {
 
 		launchScripts.forEach((path, s) -> {
 			try {
-				Utils.writeToFile(path, s);
+				Files.writeString(path, s);
 				path.toFile().setExecutable(true, false);
 			} catch (IOException e) {
 				serverHandler.error(e);

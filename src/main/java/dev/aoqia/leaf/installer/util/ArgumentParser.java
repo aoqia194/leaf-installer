@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dev.aoqia.leaf.installer.util;
 
 import java.util.HashMap;
@@ -37,23 +36,23 @@ public class ArgumentParser {
     }
 
     public String get(String argument) {
-		if (!argMap.containsKey(argument)) {
-			throw new IllegalArgumentException(String.format("Could not find %s in the arguments", argument));
-		}
+        if (!argMap.containsKey(argument)) {
+            throw new IllegalArgumentException(String.format("Could not find %s in the arguments", argument));
+        }
 
-		String arg = argMap.get(argument);
+        String arg = argMap.get(argument);
 
-		if (arg == null) {
-			throw new IllegalArgumentException(String.format("Could not value for %s", argument));
-		}
+        if (arg == null) {
+            throw new IllegalArgumentException(String.format("Could not value for %s", argument));
+        }
 
-		return arg;
-	}
+        return arg;
+    }
 
-	public String getOrDefault(String argument, Supplier<String> stringSuppler) {
-		if (!argMap.containsKey(argument)) {
-			return stringSuppler.get();
-		}
+    public String getOrDefault(String argument, Supplier<String> stringSuppler) {
+        if (!argMap.containsKey(argument)) {
+            return stringSuppler.get();
+        }
 
         return argMap.get(argument);
     }

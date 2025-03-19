@@ -9,4 +9,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'leaf-installer'
+rootProject.name = name

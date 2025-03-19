@@ -41,7 +41,7 @@ public class Main {
 
         System.setProperty("java.net.useSystemProxies", "true");
 
-		System.out.println("Loading Leaf Installer: " +
+        System.out.println("Loading Leaf Installer: " +
                            Main.class.getPackage().getImplementationVersion());
 
         HANDLERS.add(new ClientHandler());
@@ -50,10 +50,10 @@ public class Main {
         ArgumentParser argumentParser = ArgumentParser.create(args);
         String command = argumentParser.getCommand().orElse(null);
 
-		//Can be used if you wish to re-host or provide custom versions. Ensure you include the trailing /
-		String metaUrl = argumentParser.get("metaurl");
-		String mavenUrl = argumentParser.get("mavenurl");
-
+        // Can be used if you wish to re-host or provide custom versions.
+        // Ensure you include the trailing /
+        String metaUrl =  argumentParser.get("metaurl");
+        String mavenUrl =  argumentParser.get("mavenurl");
         if (metaUrl != null || mavenUrl != null) {
             LeafService.setFixed(metaUrl, mavenUrl);
         }

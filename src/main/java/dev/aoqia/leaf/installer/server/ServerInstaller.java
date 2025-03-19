@@ -87,7 +87,7 @@ public class ServerInstaller {
 
 			mainClassMeta = json.get("mainClass").asText();
 		} else { // loader jar available, generate library list from it
-			libraries.add(new Library(String.format("dev.aoqia:leaf-loader:%s", loaderVersion.name), null, loaderVersion.path));
+			libraries.add(new Library(String.format("dev.aoqia.leaf:loader:%s", loaderVersion.name), null, loaderVersion.path));
 //			libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
 
 			try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
@@ -114,7 +114,7 @@ public class ServerInstaller {
 			Path libraryFile = libsDir.resolve(library.getPath());
 
 			if (library.inputPath == null) {
-				progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.name}));
+				progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.dependency }));
 				LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
 			} else {
 				Files.createDirectories(libraryFile.getParent());
@@ -123,7 +123,7 @@ public class ServerInstaller {
 
 			libraryFiles.add(libraryFile);
 
-			if (library.name.matches("net\\.aoqia:leaf-loader:.*")) {
+			if (library.dependency.matches("net\\.aoqia:leaf-loader:.*")) {
 				try (JarFile jarFile = new JarFile(libraryFile.toFile())) {
 					Manifest manifest = jarFile.getManifest();
 					mainClassManifest = manifest.getMainAttributes().getValue("Main-Class");

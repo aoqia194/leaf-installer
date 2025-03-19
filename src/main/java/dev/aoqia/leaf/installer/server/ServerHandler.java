@@ -17,11 +17,7 @@ package dev.aoqia.leaf.installer.server;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +28,6 @@ import dev.aoqia.leaf.installer.InstallerGui;
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
-import dev.aoqia.leaf.installer.util.Reference;
 import dev.aoqia.leaf.installer.util.Utils;
 
 public class ServerHandler extends Handler {
