@@ -9,7 +9,7 @@ on:
       - manual
     branches:
 #      - main
-      - dev
+#      - dev
     types:
       - requested
 
