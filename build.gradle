@@ -30,6 +30,8 @@ base {
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -113,6 +115,8 @@ publishing {
             artifact(shadowJar) {
                 classifier = null
             }
+            artifact sourcesJar
+            artifact javadocJar
         }
     }
     repositories {
