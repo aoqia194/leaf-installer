@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.test;
+package dev.aoqia.leaf.installer.test;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import dev.aoqia.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
 
 public class ArgumentTests {
 	@Test

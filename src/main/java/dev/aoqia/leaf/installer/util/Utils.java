@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,11 +44,13 @@ public class Utils {
                 ClassLoader loader,
                 boolean reload) throws IllegalAccessException, InstantiationException, IOException {
                 final String bundleName = toBundleName(baseName, locale);
-                final String resourceName = toResourceName(bundleName, "properties").toLowerCase(Locale.ROOT);
+                final String resourceName = toResourceName(bundleName, "properties").toLowerCase(
+                    Locale.ROOT);
 
                 try (InputStream stream = loader.getResourceAsStream(resourceName)) {
                     if (stream != null) {
-                        try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                        try (InputStreamReader reader = new InputStreamReader(stream,
+                            StandardCharsets.UTF_8)) {
                             return new PropertyResourceBundle(reader);
                         }
                     }
@@ -58,37 +59,43 @@ public class Utils {
                 return super.newBundle(baseName, locale, format, loader, reload);
             }
         });
+
+    public static final Path CLIENT_INSTALL_PATH = Path.of("steamapps", "common", "ProjectZomboid");
+    public static final Path SERVER_INSTALL_PATH = Path.of("steamapps", "common",
+        "Project Zomboid Dedicated Server");
     private static final int HTTP_TIMEOUT_MS = 8000;
 
-    public static Path findDefaultInstallDir() {
-        Path dir;
-
-        if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS &&
-            Path.of("C:\\Program Files (x86)\\Steam").toFile().exists()) {
-            dir = Paths.get("C:\\Program Files (x86)\\Steam\\steamapps\\common\\ProjectZomboid");
-        } else if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
-            // TODO: Where tf does Mac install steam and zomboid?????????
-            // dir = homeDir.resolve("Library").resolve("Application Support").resolve("minecraft");
-            throw new RuntimeException("MACOS is shit, it's on the todo list tho.");
-        } else {
-            //            dir = homeDir.resolve(".minecraft");
-            //
-            //            if (OperatingSystem.CURRENT == OperatingSystem.LINUX && !Files.exists(dir)) {
-            //                // https://github.com/flathub/com.mojang.Minecraft
-            //                final Path flatpack = homeDir.resolve(".var")
-            //                    .resolve("app")
-            //                    .resolve("com.mojang.Minecraft")
-            //                    .resolve(".minecraft");
-            //
-            //                if (Files.exists(flatpack)) {
-            //                    dir = flatpack;
-            //                }
-            //            }
-
-            throw new RuntimeException("Does linux even have a centralised location for installs???");
+    /**
+     * Copied from loom's Constants class.
+     *
+     * @return The default Steam install path location for the current OS.
+     */
+    public static Path getSteamInstallPath() {
+        if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
+            return Path.of(System.getProperty("user.home"), "Library/Application Support/Steam");
+        } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
+            return Path.of(System.getProperty("user.home"), ".local/share/Steam");
         }
 
-        return dir.toAbsolutePath().normalize();
+        return Path.of("C:\\Program Files (x86)\\Steam");
+    }
+
+    /**
+     * Copied from loom's Constants class.
+     *
+     * @return The default game client install path location.
+     */
+    public static Path getClientInstallPath() {
+        return getSteamInstallPath().resolve(CLIENT_INSTALL_PATH);
+    }
+
+    /**
+     * Copied from loom's Constants class.
+     *
+     * @return The default game server install path location.
+     */
+    public static Path getServerInstallPath() {
+        return getSteamInstallPath().resolve(SERVER_INSTALL_PATH);
     }
 
     public static String readString(URL url) throws IOException {
@@ -97,9 +104,9 @@ public class Utils {
         }
     }
 
-	public static String readString(Path path) throws IOException {
-		return Files.readString(path);
-	}
+    public static String readString(Path path) throws IOException {
+        return Files.readString(path);
+    }
 
     public static String readString(InputStream is) throws IOException {
         byte[] data = new byte[Math.max(1000, is.available())];
@@ -121,10 +128,6 @@ public class Utils {
         }
 
         return new String(data, 0, offset, StandardCharsets.UTF_8);
-    }
-
-    public static void writeToFile(Path path, String string) throws IOException {
-        Files.write(path, string.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void downloadFile(URL url, Path path) throws IOException {
@@ -158,7 +161,8 @@ public class Utils {
     }
 
     public static String getProfileIcon() {
-        try (InputStream is = Utils.class.getClassLoader().getResourceAsStream("profile_icon.png")) {
+        try (InputStream is = Utils.class.getClassLoader()
+            .getResourceAsStream("profile_icon.png")) {
             byte[] ret = new byte[4096];
             int offset = 0;
             int len;
@@ -170,7 +174,8 @@ public class Utils {
                 }
             }
 
-            return "data:image/png;base64," + Base64.getEncoder().encodeToString(Arrays.copyOf(ret, offset));
+            return "data:image/png;base64," +
+                   Base64.getEncoder().encodeToString(Arrays.copyOf(ret, offset));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -218,7 +223,7 @@ public class Utils {
     /**
      * Simple semver-like version comparison.
      *
-     * @return <0,0,>0 if versionA is less/same/greater than versionB
+     * @return (0, 0, )0 if versionA is less/same/greater than versionB
      */
     public static int compareVersions(String versionA, String versionB) {
         Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)*)(?:-([^+]+))?(?:\\+.*)?");
@@ -228,7 +233,8 @@ public class Utils {
             return versionA.compareTo(versionB);
         }
 
-        int cmp = compareVersionGroups(matcherA.group(1), matcherB.group(1)); // compare version core
+        int cmp = compareVersionGroups(matcherA.group(1),
+            matcherB.group(1)); // compare version core
         if (cmp != 0) {
             return cmp;
         }

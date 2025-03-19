@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dev.aoqia.installer.Main;
+import dev.aoqia.leaf.installer.Main;
 
 public final class LeafService {
     private static int activeIndex = 0; // index into INSTANCES or -1 if set to a fixed service

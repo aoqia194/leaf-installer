@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.client;
+package dev.aoqia.leaf.installer.client;
 
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -24,10 +22,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 
-import dev.aoqia.installer.Handler;
-import dev.aoqia.installer.InstallerGui;
-import dev.aoqia.installer.LoaderVersion;
-import dev.aoqia.installer.util.*;
+import dev.aoqia.leaf.installer.Handler;
+import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.util.*;
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 
 public class ClientHandler extends Handler {
     private JCheckBox createProfile;
@@ -52,18 +52,17 @@ public class ClientHandler extends Handler {
                 updateProgress(new MessageFormat(
                     Utils.BUNDLE.getString("progress.installing")).format(new Object[] {
                     loaderVersion.name }));
-                Path pzPath = Paths.get(installLocation.getText());
 
+                Path pzPath = Paths.get(installLocation.getText());
                 if (!Files.exists(pzPath)) {
                     throw new RuntimeException(Utils.BUNDLE.getString(
                         "progress.exception.no.launcher.directory"));
                 }
 
-                String profileName = ClientInstaller.install(pzPath, gameVersion,
-                    loaderVersion, createProfile.isSelected(), this);
+                String profileName = ClientInstaller.install(pzPath, gameVersion, loaderVersion,
+                    createProfile.isSelected(), this);
                 SwingUtilities.invokeLater(() -> showInstalledMessage(loaderVersion.name,
-                    gameVersion,
-                    pzPath.resolve(".leaf/mods")));
+                    gameVersion, pzPath.resolve(".leaf/mods")));
             } catch (Exception e) {
                 error(e);
             } finally {
@@ -74,9 +73,9 @@ public class ClientHandler extends Handler {
 
     @Override
     public void installCli(ArgumentParser args) throws Exception {
-        Path path = Paths.get(
-            args.getOrDefault("dir", () -> Utils.findDefaultInstallDir().toString()));
-
+        Path path = Paths.get(args.getOrDefault("dir", () -> {
+            return Utils.getClientInstallPath().toString();
+        }));
         if (!Files.exists(path)) {
             throw new FileNotFoundException("Game directory not found at " + path);
         }
@@ -98,9 +97,8 @@ public class ClientHandler extends Handler {
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
         addRow(pane, c, null,
-            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.profile"),
-                true));
-        installLocation.setText(Utils.findDefaultInstallDir().toString());
+            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.profile"), true));
+        installLocation.setText(Utils.getClientInstallPath().toString());
     }
 
     private void showInstalledMessage(String loaderVersion, String gameVersion,
@@ -108,10 +106,8 @@ public class ClientHandler extends Handler {
         JEditorPane pane = new JEditorPane("text/html",
             "<html><body style=\"" + buildEditorPaneStyle() + "\">" +
             new MessageFormat(Utils.BUNDLE.getString("prompt.install.successful")).format(
-                new Object[] {
-                    loaderVersion,
-                    gameVersion,
-                    Reference.LEAF_API_URL }) + "</body></html>");
+                new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL }
+            ) + "</body></html>");
         pane.setBackground(new Color(0, 0, 0, 0));
         pane.setEditable(false);
         pane.setCaret(new NoopCaret());

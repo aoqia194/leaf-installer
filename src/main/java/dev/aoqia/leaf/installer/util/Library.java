@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -21,33 +21,42 @@ import java.nio.file.Path;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Library {
-	public final String name;
-	public final String url;
-	public final Path inputPath;
+    public final String dependency;
+    public final String url;
+    public final Path inputPath;
+    public String groupId;
+    public String artifactId;
+    public String version;
 
-	public Library(String name, String url, Path inputPath) {
-		this.name = name;
-		this.url = url;
-		this.inputPath = inputPath;
-	}
+    public Library(String dependency, String url, Path inputPath) {
+        this.dependency = dependency;
+        this.url = url;
+        this.inputPath = inputPath;
 
-	public Library(JsonNode json) {
-		name = json.path("name").asText();
-		url = json.path("url").asText();
-		inputPath = null;
-	}
+        final var parts = dependency.split(":", 3);
+        this.groupId = parts[0];
+        this.artifactId = parts[1];
+        this.version = parts[2];
+    }
 
-	public String getURL() {
-		String path;
-		String[] parts = this.name.split(":", 3);
-		path = parts[0].replace(".", "/") + "/" + parts[1] + "/" + parts[2] + "/" + parts[1] + "-" + parts[2] + ".jar";
+    public Library(JsonNode json) {
+        dependency = json.path("name").asText();
+        url = json.path("url").asText();
+        inputPath = null;
 
-		return url + path;
-	}
+        final var parts = dependency.split(":", 3);
+        this.groupId = parts[0];
+        this.artifactId = parts[1];
+        this.version = parts[2];
+    }
 
-	public String getPath() {
-		String[] parts = this.name.split(":", 3);
-		String path = parts[0].replace(".", File.separator) + File.separator + parts[1] + File.separator + parts[2] + File.separator + parts[1] + "-" + parts[2] + ".jar";
-		return path.replaceAll(" ", "_");
-	}
+    public String getURL() {
+        return url + "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version,
+            artifactId, version);
+    }
+
+    public String getPath() {
+        return "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version,
+            artifactId, version).replaceAll(" ", "_").replaceAll("/", File.separator);
+    }
 }

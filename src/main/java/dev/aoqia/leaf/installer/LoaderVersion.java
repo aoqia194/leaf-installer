@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer;
+package dev.aoqia.leaf.installer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
-import dev.aoqia.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public final class LoaderVersion {
     public final String name;

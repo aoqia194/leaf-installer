@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.server;
+package dev.aoqia.leaf.installer.server;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -54,10 +54,10 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dev.aoqia.installer.InstallerGui;
-import dev.aoqia.installer.Main;
-import dev.aoqia.installer.util.LauncherMeta;
-import dev.aoqia.installer.util.Utils;
+import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.LauncherMeta;
+import dev.aoqia.leaf.installer.util.Utils;
 
 @SuppressWarnings("serial")
 public class ServerPostInstallDialog extends JDialog {
@@ -229,7 +229,7 @@ public class ServerPostInstallDialog extends JDialog {
 
 		launchScripts.forEach((path, s) -> {
 			try {
-				Utils.writeToFile(path, s);
+				Files.writeString(path, s);
 				path.toFile().setExecutable(true, false);
 			} catch (IOException e) {
 				serverHandler.error(e);

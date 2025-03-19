@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer;
+package dev.aoqia.leaf.installer;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,10 +35,10 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import dev.aoqia.installer.server.ServerInstaller;
-import dev.aoqia.installer.util.InstallerProgress;
-import dev.aoqia.installer.util.OperatingSystem;
-import dev.aoqia.installer.util.Utils;
+import dev.aoqia.leaf.installer.server.ServerInstaller;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public final class ServerLauncher {
     private static final String INSTALL_CONFIG_NAME = "install.properties";

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import dev.aoqia.installer.Main;
-import dev.aoqia.installer.util.json.GameManifestVersion;
+import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
 
 public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion>> {
     private final String metaPath;

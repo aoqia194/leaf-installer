@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer;
+package dev.aoqia.leaf.installer;
 
 import java.awt.*;
 import java.io.IOException;
@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.aoqia.installer.client.ClientHandler;
-import dev.aoqia.installer.server.ServerHandler;
-import dev.aoqia.installer.util.*;
+import dev.aoqia.leaf.installer.client.ClientHandler;
+import dev.aoqia.leaf.installer.server.ServerHandler;
+import dev.aoqia.leaf.installer.util.*;
 
 public class Main {
     public static final List<Handler> HANDLERS = new ArrayList<>();
@@ -48,13 +48,10 @@ public class Main {
         ArgumentParser argumentParser = ArgumentParser.create(args);
         String command = argumentParser.getCommand().orElse(null);
 
-        //Can be used if you wish to re-host or provide custom versions. Ensure you
-        // include the trailing /
-        String metaUrl =
-            argumentParser.has("metaurl") ? argumentParser.get("metaurl") : null;
-        String mavenUrl =
-            argumentParser.has("mavenurl") ? argumentParser.get("mavenurl") : null;
-
+        // Can be used if you wish to re-host or provide custom versions.
+        // Ensure you include the trailing /
+        String metaUrl = argumentParser.has("metaurl") ? argumentParser.get("metaurl") : null;
+        String mavenUrl = argumentParser.has("mavenurl") ? argumentParser.get("mavenurl") : null;
         if (metaUrl != null || mavenUrl != null) {
             LeafService.setFixed(metaUrl, mavenUrl);
         }

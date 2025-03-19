@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer;
+package dev.aoqia.leaf.installer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -25,10 +25,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Locale;
 
-import dev.aoqia.installer.util.ArgumentParser;
-import dev.aoqia.installer.util.InstallerProgress;
-import dev.aoqia.installer.util.MetaHandler;
-import dev.aoqia.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.MetaHandler;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public abstract class Handler implements InstallerProgress {
     protected static final int HORIZONTAL_SPACING = 4;

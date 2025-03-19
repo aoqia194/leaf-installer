@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.installer.client;
+package dev.aoqia.leaf.installer.client;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.aoqia.installer.LoaderVersion;
-import dev.aoqia.installer.Main;
-import dev.aoqia.installer.util.*;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.*;
 
 public class ClientInstaller {
-    public static String install(Path gameDir,
-        String gameVersion,
-        LoaderVersion loaderVersion,
-        boolean createProfile,
-        InstallerProgress progress) throws IOException {
-        System.out.println(
-            "Installing " + gameVersion + " with leaf " + loaderVersion.name);
+    public static String install(Path gameDir, String gameVersion, LoaderVersion loaderVersion,
+        boolean createProfile, InstallerProgress progress) throws IOException {
+        System.out.println("Installing " + gameVersion + " with leaf " + loaderVersion.name);
 
         String configName = String.format("%s-%s-%s", Reference.LOADER_NAME,
             loaderVersion.name, gameVersion);
@@ -42,6 +39,21 @@ public class ClientInstaller {
         JsonNode loaderVersionJson = LeafService.queryMetaJson("loader_versions.json")
             .path("versions")
             .path(loaderVersion.name);
+
+        // Download libraries before creating profile.
+        final Path libsDir = gameDir.resolve(".leaf/libraries");
+        for (final var libraryJson : loaderVersionJson.path("libraries")) {
+            Library library = new Library(libraryJson);
+            Path libraryFile = libsDir.resolve(
+                "%s-%s.jar".formatted(library.artifactId, library.version));
+            String url = library.getURL();
+
+            // System.out.println("Downloading "+url+" to "+libraryFile);
+            progress.updateProgress(new MessageFormat(
+                Utils.BUNDLE.getString("progress.download.library.entry"))
+                .format(new Object[] { library.dependency }));
+            LeafService.downloadSubstitutedMaven(url, libraryFile);
+        }
 
         // Clone default bootstrapper config and load it.
         // TODO: Handle other OS.
@@ -62,41 +74,39 @@ public class ClientInstaller {
             }
             Files.copy(origConfig, bootstrapperConfig);
 
-            // Load version config and modify cloned bootstrapper config, then save to new
-            // config.
+            // Load version config and modify cloned bootstrapper config, then save to new config.
             JsonNode bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
-                Utils.readString(bootstrapperConfig));
+                Files.readString(bootstrapperConfig));
             ((ObjectNode) bootstrapperConfigJson).setAll(
                 (ObjectNode) loaderVersionJson.path("config"));
 
             // Always remove these stupid JVM properties that shouldn't exist.
-            ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
+            final ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
             assert vmArgs.isArray();
             for (int i = 0; i < vmArgs.size(); ++i) {
                 final var node = vmArgs.get(i);
                 if (node.asText().startsWith("-Xms") ||
-                    node.asText().startsWith("-Xmx")) {
+                    node.asText().startsWith("-Xmx") ||
+                    node.asText().equals("-Djava.awt.headless=true")) {
                     vmArgs.remove(i);
                 }
+            }
+
+            // Add the gameVersion property to the vmArgs so loader knows what version it is.
+            // Probably a better way to do it but idk.
+            vmArgs.add("-Dleaf.gameVersion=" + gameVersion);
+
+            // Add our loader's libraries to the classpath.
+            // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
+            final ArrayNode classpath = (ArrayNode) bootstrapperConfigJson.path("classpath");
+            try (final Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
+                stream.forEach(path -> classpath.add(gameDir.relativize(path).toString()));
             }
 
             Files.writeString(bootstrapperConfig, bootstrapperConfigJson.toString());
         }
 
-        for (var libraryJson : loaderVersionJson.path("libraries")) {
-            Library library = new Library(libraryJson);
-            Path libraryFile = gameDir.resolve(library.getPath());
-            String url = library.getURL();
-
-            //System.out.println("Downloading "+url+" to "+libraryFile);
-            progress.updateProgress(new MessageFormat(
-                Utils.BUNDLE.getString("progress.download.library.entry")).format(
-                new Object[] { library.name }));
-            LeafService.downloadSubstitutedMaven(url, libraryFile);
-        }
-
         progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
-
         return configName;
     }
 }

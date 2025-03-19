@@ -1,131 +1,194 @@
 plugins {
-	id 'java'
-	id 'maven-publish'
-	id "com.gradleup.shadow" version "8.3.0"
-	id "com.diffplug.spotless" version "6.20.0"
-	id "de.undercouch.download" version "5.6.0"
-	id "me.modmuss50.remotesign" version "0.4.0"
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.0'
+    id 'com.diffplug.spotless' version '6.20.0'
+    id 'de.undercouch.download' version '5.6.0'
+    // Publishing to Maven Central
+    id 'org.jreleaser' version '1.17.0'
+    id 'maven-publish'
 }
 
-version = '1.0.0'
-
 def ENV = System.getenv()
-version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
+version = version + (ENV.GITHUB_ACTIONS ? '' : '.local')
 
 repositories {
-	maven {
-		name = 'Fabric'
-		url = 'https://maven.fabricmc.net/'
-	}
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
     mavenCentral()
 }
 
 dependencies {
-	implementation "com.fasterxml.jackson.core:jackson-databind:2.18.2"
-	testImplementation "junit:junit:4.13.2"
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+    testImplementation 'junit:junit:4.13.2'
 }
 
 base {
-	archivesName = "leaf-installer"
+    archivesName = project.name
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
+    it.options.encoding = "UTF-8"
     it.options.release = 17
 }
 
 shadowJar {
-	manifest {
-		attributes 'Implementation-Title': 'LeafInstaller',
-				'Implementation-Version': project.version,
-				'Main-Class': 'dev.aoqia.installer.Main'
-	}
+    manifest {
+        attributes 'Implementation-Title': 'LeafInstaller',
+            'Implementation-Version': project.version,
+            'Main-Class': "${project.group}.installer.Main"
+    }
 
-	minimize()
-	archiveClassifier.set(null)
-	exclude('icon.ico')
+    minimize()
+    archiveClassifier.set(null)
+    exclude('icon.ico')
 }
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 jar {
-	enabled = false
+    enabled = false
 
-	manifest {
-		attributes('Enable-Native-Access': 'ALL-UNNAMED')
-	}
-}
-
-if (ENV.SIGNING_SERVER) {
-	remoteSign {
-		requestUrl = ENV.SIGNING_SERVER
-		pgpAuthKey = ENV.SIGNING_PGP_KEY
-		jarAuthKey = ENV.SIGNING_JAR_KEY
-
-		sign (shadowJar)
-
-		afterEvaluate {
-			sign publishing.publications.maven
-		}
-	}
+    manifest {
+        attributes('Enable-Native-Access': 'ALL-UNNAMED')
+    }
 }
 
 spotless {
-	java {
-		licenseHeaderFile(rootProject.file("HEADER"))
-	}
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId project.group
-			artifactId base.archivesName.get()
-			version project.version
-
-			if (ENV.SIGNING_SERVER) {
-				artifact (signShadowJar) {
-					classifier null
-				}
-			} else {
-				artifact (shadowJar) {
-					classifier null
-				}
-			}
-		}
-	}
-	repositories {
-		maven {
-			if (ENV.MAVEN_URL) {
-				url ENV.MAVEN_URL
-				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
-				}
-			}
-		}
-	}
+    java {
+        licenseHeaderFile(rootProject.file("HEADER"))
+    }
 }
 
 // A task to ensure that the version being released has not already been released.
 tasks.register('checkVersion') {
-	doFirst {
-		def xml = new URL("https://repo.maven.apache.org/maven2/dev/aoqia/leaf-installer/maven-metadata.xml").text
-		def metadata = new groovy.xml.XmlSlurper().parseText(xml)
-		def versions = metadata.versioning.versions.version*.text();
-		if (versions.contains(version)) {
-			throw new RuntimeException("${version} has already been released!")
-		}
-	}
+    doFirst {
+        def xml = new URL(
+            'https://repo.maven.apache.org/maven2/dev/aoqia/leaf/installer/maven-metadata.xml').text
+        def metadata = new groovy.xml.XmlSlurper().parseText(xml)
+        def versions = metadata.versioning.versions.version*.text();
+        if (versions.contains(version)) {
+            throw new RuntimeException("${version} has already been released!")
+        }
+    }
 }
-
 publish.mustRunAfter checkVersion
 
+publishing {
+    publications {
+        register('maven', MavenPublication) {
+            pom {
+                name = rootProject.name
+                group = rootProject.group
+                description = rootProject.description
+                url = rootProject.url
+                inceptionYear = '2025'
+                developers {
+                    developer {
+                        id = 'aoqia'
+                        name = 'aoqia'
+                    }
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = "${rootProject.url}/issues"
+                }
+                licenses {
+                    license {
+                        name = 'MIT'
+                        url = 'https://spdx.org/licenses/MIT.html'
+                    }
+                }
+                scm {
+                    connection = "scm:git:${project.url}.git"
+                    developerConnection = "" +
+                        "scm:git:ssh://github.com/aoqia194/leaf-${project.name}.git"
+                    url = rootProject.url
+                }
+            }
+
+            artifact(shadowJar) {
+                classifier = null
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+}
+
+jreleaser {
+    project {
+        name = rootProject.name
+        version = rootProject.version
+        versionPattern = 'SEMVER'
+        authors = ['aoqia194', 'FabricMC']
+        maintainers = ['aoqia194']
+        license = 'MIT'
+        inceptionYear = '2025'
+        links {
+            homepage = rootProject.url
+            license = 'https://spdx.org/licenses/MIT.html'
+        }
+    }
+    signing {
+        active = 'ALWAYS'
+        armored = true
+        passphrase = ENV.GPG_PASSPHRASE_KEY
+        publicKey = ENV.GPG_PUBLIC_KEY
+        secretKey = ENV.GPG_PRIVATE_KEY
+    }
+    deploy {
+        maven {
+            pomchecker {
+                version = "1.14.0"
+                failOnWarning = false // annoying
+                failOnError = true
+                strict = true
+            }
+            mavenCentral {
+                sonatype {
+                    applyMavenCentralRules = true
+                    active = "ALWAYS"
+                    snapshotSupported = true
+                    authorization = 'BEARER'
+                    username = ENV.MAVEN_USERNAME
+                    password = ENV.MAVEN_PASSWORD
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository("build/staging-deploy")
+                    verifyUrl = "https://repo1.maven.org/maven2/{{path}}/{{filename}}"
+                    namespace = rootProject.group
+                    retryDelay = 60
+                    maxRetries = 30
+                }
+            }
+        }
+    }
+    release {
+        github {
+            enabled = true
+            repoOwner = 'aoqia194'
+            name = "leaf-${project.name}"
+            host = 'github.com'
+            releaseName = '{{tagName}}'
+            sign = true
+            overwrite = true
+            artifacts = true
+            changelog {
+                formatted = 'ALWAYS'
+                preset = 'conventional-commits'
+                extraProperties.put('categorizeScopes', 'true')
+            }
+        }
+    }
+}
+
 class FileOutput extends DefaultTask {
-	@OutputFile
-	File output
+    @OutputFile
+    File output
 }
