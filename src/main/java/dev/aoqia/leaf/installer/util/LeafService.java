@@ -38,8 +38,8 @@ public final class LeafService {
      * Query Leaf Meta path and decode as JSON.
      */
     public static JsonNode queryMetaJson(String path) throws IOException {
-        return invokeWithFallbacks((service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(
-            service.meta + arg))), path);
+        return invokeWithFallbacks((service, arg) ->
+            Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(service.meta + arg))), path);
     }
 
     /**
@@ -52,8 +52,8 @@ public final class LeafService {
 
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
-        return invokeWithFallbacks((service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(
-            service.maven + arg))), path);
+        return invokeWithFallbacks((service, arg) ->
+            Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(service.maven + arg))), path);
     }
 
     /**
