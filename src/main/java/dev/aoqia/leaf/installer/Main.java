@@ -30,7 +30,7 @@ public class Main {
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static MetaHandler GAME_VERSION_META;
-    public static MetaHandler LOADER_META;
+    public static GithubMetaHandler LOADER_META;
 
     public static void main(String[] args) throws IOException {
 
@@ -59,9 +59,9 @@ public class Main {
         GAME_VERSION_META = new MetaHandler(
             "manifests/client/" + OperatingSystem.CURRENT.toShortString() +
             "/version_manifest.json");
-        LOADER_META = new MetaHandler("loader_versions.json");
+        LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", "loader");
 
-        //Default to the help command in a headless environment
+        // Default to the help command in a headless environment
         if (GraphicsEnvironment.isHeadless() && command == null) {
             command = "help";
         }
@@ -82,7 +82,7 @@ public class Main {
 
             System.out.printf("\nLatest Version: %s\nLatest Loader: %s\n",
                 GAME_VERSION_META.getLatestVersion(argumentParser.has("unstable")).id(),
-                Main.LOADER_META.getLatestVersion(false).id());
+                LOADER_META.getLatestVersion(false).id());
         } else {
             loadMetadata();
 
