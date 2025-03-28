@@ -33,7 +33,8 @@ public record LauncherMeta(List<Version> versions) {
     }
 
     private static LauncherMeta load() throws IOException {
-        List<Version> versions = new ArrayList<>(getVersionsFromUrl(Reference.ZOMBOID_VERSION_MANIFEST));
+        List<Version> versions = new ArrayList<>(
+            getVersionsFromUrl(Reference.ZOMBOID_VERSION_MANIFEST));
         return new LauncherMeta(versions);
     }
 
