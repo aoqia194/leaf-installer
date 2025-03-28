@@ -178,7 +178,7 @@ jreleaser {
         github {
             enabled = true
             repoOwner = 'aoqia194'
-            name = "leaf-${project.name}"
+            name = "leaf-${rootProject.name}"
             host = 'github.com'
             releaseName = '{{tagName}}'
             sign = true
