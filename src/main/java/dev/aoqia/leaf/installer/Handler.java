@@ -148,7 +148,7 @@ public abstract class Handler implements InstallerProgress {
     private void updateGameVersions() {
         gameVersionComboBox.removeAllItems();
 
-        for (MetaHandler.GameVersion version : Main.GAME_VERSION_META.getVersions()) {
+        for (MetaHandler.ComponentVersion version : Main.GAME_VERSION_META.getVersions()) {
             if (!unstableCheckbox.isSelected() && version.isUnstable()) {
                 continue;
             }

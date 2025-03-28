@@ -23,10 +23,12 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.*;
+import org.apache.commons.collections4.iterators.IteratorChain;
 
 public class ClientInstaller {
     public static String install(Path gameDir, String gameVersion, LoaderVersion loaderVersion,
@@ -35,15 +37,24 @@ public class ClientInstaller {
 
         String configName = String.format("%s-%s-%s", Reference.LOADER_NAME,
             loaderVersion.name, gameVersion);
-
-        JsonNode loaderVersionJson = LeafService.queryMetaJson("loader_versions.json")
-            .path("versions")
-            .path(loaderVersion.name);
+        JsonNode loaderVersionJson = LeafService.queryMetaJson(
+            "loader/" + loaderVersion.name + ".json");
 
         // Download libraries before creating profile.
         final Path libsDir = gameDir.resolve(".leaf/libraries");
-        for (final var libraryJson : loaderVersionJson.path("libraries")) {
-            Library library = new Library(libraryJson);
+        final var libsJson = loaderVersionJson.path("libraries");
+
+        // Putting loader dependency into the libs list for later download.
+        final var obj = JsonNodeFactory.instance.objectNode();
+        obj.put("name", "dev.aoqia.leaf:loader:" + loaderVersion.name);
+        obj.put("url", Reference.DEFAULT_MAVEN_SERVER);
+        ((ArrayNode) libsJson.path("common")).add(obj);
+
+        final var libs = new IteratorChain<>(libsJson.path("common").iterator(),
+            libsJson.path("client").iterator());
+
+        libs.forEachRemaining((libJson) -> {
+            Library library = new Library(libJson);
             Path libraryFile = libsDir.resolve(
                 "%s-%s.jar".formatted(library.artifactId, library.version));
             String url = library.getURL();
@@ -52,20 +63,19 @@ public class ClientInstaller {
             progress.updateProgress(new MessageFormat(
                 Utils.BUNDLE.getString("progress.download.library.entry"))
                 .format(new Object[] { library.dependency }));
-            LeafService.downloadSubstitutedMaven(url, libraryFile);
-        }
+
+            try {
+                LeafService.downloadSubstitutedMaven(url, libraryFile);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to download library " + library.artifactId, e);
+            }
+        });
 
         // Clone default bootstrapper config and load it.
-        // TODO: Handle other OS.
+        // TODO: Handle other OS? Maybe not needed?
         if (createProfile) {
             Path bootstrapperConfig = gameDir.resolve(configName + ".json");
-            Path origConfig;
-            if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
-                origConfig = gameDir.resolve("ProjectZomboid64.json");
-            } else {
-                throw new RuntimeException(
-                    "Multi-OS bootstrapper config not implemented yet");
-            }
+            Path origConfig = gameDir.resolve("ProjectZomboid64.json");
 
             if (Files.exists(bootstrapperConfig)) {
                 throw new RuntimeException(
@@ -77,8 +87,8 @@ public class ClientInstaller {
             // Load version config and modify cloned bootstrapper config, then save to new config.
             JsonNode bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
                 Files.readString(bootstrapperConfig));
-            ((ObjectNode) bootstrapperConfigJson).setAll(
-                (ObjectNode) loaderVersionJson.path("config"));
+            ((ObjectNode) bootstrapperConfigJson).put("mainClass",
+                loaderVersionJson.path("mainClass").path("client").asText().replace(".", "/"));
 
             // Always remove these stupid JVM properties that shouldn't exist.
             final ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
@@ -89,6 +99,7 @@ public class ClientInstaller {
                     node.asText().startsWith("-Xmx") ||
                     node.asText().equals("-Djava.awt.headless=true")) {
                     vmArgs.remove(i);
+                    i--;
                 }
             }
 
