@@ -26,10 +26,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
+import dev.aoqia.leaf.installer.util.json.GitTreeObject;
 
-public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion>> {
-    private final String metaPath;
-    private List<GameVersion> versions;
+public class MetaHandler extends CompletableHandler<List<MetaHandler.ComponentVersion>> {
+    protected final String metaPath;
+    protected List<ComponentVersion> versions;
 
     public MetaHandler(String path) {
         this.metaPath = path;
@@ -39,13 +40,13 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
         final JsonNode versionTableNode = LeafService.queryMetaJson(metaPath);
         final JsonNode versionsNode = versionTableNode.path("versions");
 
-        List<GameVersion> temp;
+        List<ComponentVersion> temp;
         if (versionsNode.isArray()) {
             final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
                 new TypeReference<List<GameManifestVersion>>() {});
 
             temp = versionsJson.stream()
-                .map(GameVersion::new)
+                .map(ComponentVersion::new)
                 .collect(Collectors.toList());
         } else {
             final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
@@ -53,7 +54,7 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 
             temp = new ArrayList<>();
             versionsJson.forEach((key, value) -> {
-                temp.add(new GameVersion(key));
+                temp.add(new ComponentVersion(key));
             });
         }
         this.versions = temp;
@@ -61,17 +62,17 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
         complete(this.versions);
     }
 
-    public List<GameVersion> getVersions() {
+    public List<ComponentVersion> getVersions() {
         return Collections.unmodifiableList(versions);
     }
 
-    public GameVersion getLatestVersion(boolean unstable) {
+    public ComponentVersion getLatestVersion(boolean unstable) {
         if (versions.isEmpty()) {
             throw new RuntimeException("no versions available at " + metaPath);
         }
 
         if (unstable) {
-            for (GameVersion version : versions) {
+            for (ComponentVersion version : versions) {
                 if (version.isUnstable()) {
                     return version;
                 }
@@ -81,15 +82,19 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
         return versions.get(0);
     }
 
-    public static class GameVersion {
+    public static class ComponentVersion {
         String id;
 
-        public GameVersion(String id) {
+        public ComponentVersion(String id) {
             this.id = id;
         }
 
-        public GameVersion(GameManifestVersion version) {
+        public ComponentVersion(GameManifestVersion version) {
             this.id = version.id;
+        }
+
+        public ComponentVersion(GitTreeObject object) {
+            this.id = object.path.replace(".json", "");
         }
 
         public String id() {
