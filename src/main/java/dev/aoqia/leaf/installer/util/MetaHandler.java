@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
+import dev.aoqia.leaf.installer.util.json.GitTreeObject;
 
 public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion>> {
 	private final String name;
@@ -110,6 +111,10 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 
         public GameVersion(GameManifestVersion version) {
             this.id = version.id;
+        }
+
+        public GameVersion(GitTreeObject object) {
+            this.id = object.path.replace(".json", "");
         }
 
         public String id() {

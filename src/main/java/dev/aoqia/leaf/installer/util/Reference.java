@@ -18,15 +18,15 @@ package dev.aoqia.leaf.installer.util;
 public class Reference {
     public static final String LOADER_NAME = "loader";
 
-    static final String DEFAULT_META_SERVER = "https://raw.githubusercontent.com/aoqia194/leaf/refs/heads/main/";
-    static final String DEFAULT_MAVEN_SERVER = "https://repo.maven.apache.org/maven2/";
-
-    public static final String LEAF_API_URL = DEFAULT_MAVEN_SERVER + "dev/aoqia/leaf/api/";
-    public static final String ZOMBOID_VERSION_MANIFEST = "https://raw.githubusercontent.com/" +
-                                                          "aoqia194/leaf/refs/heads/main/manifests/{0}/{1}/" +
-                                                          "version_manifest.json";
-
+    static final String MANIFEST_REPOSITORY =
+        "https://raw.githubusercontent.com/aoqia194/leaf/refs/heads/main/";
+    static final String GITHUB_API = "https://api.github.com/";
+    public static final String ZOMBOID_VERSION_MANIFEST =
+        MANIFEST_REPOSITORY + "manifests/{0}/{1}/version_manifest.json";
+    static final String DEFAULT_META_SERVER = MANIFEST_REPOSITORY;
+    public static final String DEFAULT_MAVEN_SERVER = "https://repo.maven.apache.org/maven2/";
     static final LeafService[] LEAF_SERVICES = {
         new LeafService(DEFAULT_META_SERVER, DEFAULT_MAVEN_SERVER),
     };
+    public static final String LEAF_API_URL = DEFAULT_MAVEN_SERVER + "dev/aoqia/leaf/api/";
 }
