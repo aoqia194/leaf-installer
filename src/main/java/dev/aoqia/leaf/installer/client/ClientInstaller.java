@@ -21,13 +21,14 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.stream.Stream;
 
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.*;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.Main;
-import dev.aoqia.leaf.installer.util.*;
 import org.apache.commons.collections4.iterators.IteratorChain;
 
 public class ClientInstaller {
@@ -35,10 +36,9 @@ public class ClientInstaller {
         boolean createProfile, InstallerProgress progress) throws IOException {
         System.out.println("Installing " + gameVersion + " with leaf " + loaderVersion.name);
 
-        String configName = String.format("%s-%s-%s", Reference.LOADER_NAME,
-            loaderVersion.name, gameVersion);
-        JsonNode loaderVersionJson = LeafService.queryMetaJson(
-            "loader/" + loaderVersion.name + ".json");
+        String configName = String.format("leaf-%s-%s", loaderVersion.name, gameVersion);
+        JsonNode loaderVersionJson = LeafService.queryMetaJson("loader/" + loaderVersion.name +
+                                                               ".json");
 
         // Download libraries before creating profile.
         final Path libsDir = gameDir.resolve(".leaf/libraries");
@@ -96,10 +96,10 @@ public class ClientInstaller {
             for (int i = 0; i < vmArgs.size(); ++i) {
                 final var node = vmArgs.get(i);
                 if (node.asText().startsWith("-Xms") ||
-                    node.asText().startsWith("-Xmx") ||
-                    node.asText().equals("-Djava.awt.headless=true")) {
-                    vmArgs.remove(i);
-                    i--;
+                    node.asText().startsWith("-Xmx")
+                    // node.asText().equals("-Djava.awt.headless=true")
+                ) {
+                    vmArgs.remove(i--);
                 }
             }
 
