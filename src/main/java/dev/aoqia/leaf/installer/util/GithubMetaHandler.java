@@ -19,14 +19,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.GitTreeObject;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
- * The primary use of this class is to parse git trees of a repository. For example, this is used to
- * get all of the files in a specific folder under the leaf repository.
+ * The primary use of this class is to parse git trees of a repository.
+ * For example, this is used to get all of the files in a specific folder under the leaf repository.
  */
 public class GithubMetaHandler extends MetaHandler {
     private String subfolder;
@@ -66,6 +67,7 @@ public class GithubMetaHandler extends MetaHandler {
 
         temp = versionsJson.stream()
             .map(ComponentVersion::new)
+            .sorted((v1, v2) -> v2.id.compareToIgnoreCase(v1.id))
             .collect(Collectors.toList());
         this.versions = temp;
 
