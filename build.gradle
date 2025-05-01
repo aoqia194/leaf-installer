@@ -183,7 +183,10 @@ jreleaser {
             releaseName = '{{tagName}}'
             sign = true
             overwrite = true
+            uploadAssets = 'ALWAYS'
             artifacts = true
+            checksums = true
+            signatures = true
             changelog {
                 formatted = 'ALWAYS'
                 preset = 'conventional-commits'
