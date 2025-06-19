@@ -1,7 +1,7 @@
 # Leaf Installer
 
-An installer for the Project Zomboid bootstrapper, used to install leaf-loader (
-a [fabric-loader](https://github.com/FabricMC/fabric-loader) fork) and its dependencies.
+An installer for the Project Zomboid bootstrapper, used to install leaf-loader
+(a [fabric-loader](https://github.com/FabricMC/fabric-loader) fork) and its dependencies.
 
 ### Usage
 
@@ -12,11 +12,16 @@ a [fabric-loader](https://github.com/FabricMC/fabric-loader) fork) and its depen
   require [JarFix](https://johann.loefflmann.net/en/software/jarfix/index.html) if on Windows and
   double-click does not work)
 - Select the correct game version that is installed and the directory at which the game is installed
-- Hit install!
+- Hit install! **Make sure that you read the post-installation message that shows up!**
 - Add the launch option `-pzexeconfig loader-{loaderVersion}-{gameVersion}.json` to your game through the
   Steam Library
 
-Make sure that you read the post-installation message that shows up!
+### What gets installed?
+
+In your game directory, there will be 2 new things.
+
+- A folder named `.leaf` (hidden on Linux by default) which stores libs for leaf to run. This folder can be ignored and deleting it can be safely done if you don't want leaf installed AT ALL
+- A file with the name of `loader-{loaderVersion}-{gameVersion}.json`. This file is a config for the bootstrapper to tell it that we want to run leaf
 
 ### Special Thanks
 
