@@ -13,7 +13,7 @@ a [fabric-loader](https://github.com/FabricMC/fabric-loader) fork) and its depen
   double-click does not work)
 - Select the correct game version that is installed and the directory at which the game is installed
 - Hit install!
-- Add the launch option `-pzexeconfig loader-{loaderVersion}-{gameVersion}` to your game through the
+- Add the launch option `-pzexeconfig loader-{loaderVersion}-{gameVersion}.json` to your game through the
   Steam Library
 
 Make sure that you read the post-installation message that shows up!
