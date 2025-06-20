@@ -21,7 +21,7 @@ An installer for the Project Zomboid bootstrapper, used to install leaf-loader
 In your game directory, there will be 2 new things.
 
 - A folder named `.leaf` (hidden on Linux by default) which stores libs for leaf to run. This folder can be ignored and deleting it can be safely done if you don't want leaf installed AT ALL
-- A file with the name of `loader-{loaderVersion}-{gameVersion}.json`. This file is a config for the bootstrapper to tell it that we want to run leaf
+- A file with the name of `leaf-{loaderVersion}-{gameVersion}.json`. This file is a config for the bootstrapper to tell it that we want to run leaf
 
 ### Special Thanks
 
