@@ -74,9 +74,13 @@ public class ClientInstaller {
         // Clone default bootstrapper config and load it.
         // TODO: Handle other OS? Maybe not needed?
         if (createProfile) {
-            Path bootstrapperConfig = gameDir.resolve(configName + ".json");
             Path origConfig = gameDir.resolve("ProjectZomboid64.json");
+            if (Files.notExists(origConfig)) {
+                throw new RuntimeException(
+                    Utils.BUNDLE.getString("progress.exception.no.launcher.config"));
+            }
 
+            Path bootstrapperConfig = gameDir.resolve(configName + ".json");
             if (Files.exists(bootstrapperConfig)) {
                 throw new RuntimeException(
                     "Bootstrapper config %s already exists.".formatted(
