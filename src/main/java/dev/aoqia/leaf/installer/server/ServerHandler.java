@@ -33,7 +33,7 @@ import dev.aoqia.leaf.installer.util.Utils;
 public class ServerHandler extends Handler {
     @Override
     public String name() {
-        return "Server";
+        return Utils.BUNDLE.getString("tab.server");
     }
 
     @Override
