@@ -60,8 +60,8 @@ public class Utils {
             }
         });
 
-    public static final Path CLIENT_INSTALL_PATH = Path.of("steamapps", "common", "ProjectZomboid");
-    public static final Path SERVER_INSTALL_PATH = Path.of("steamapps", "common",
+    public static final Path CLIENT_LIBRARY_PATH = Path.of("steamapps", "common", "ProjectZomboid");
+    public static final Path SERVER_LIBRARY_PATH = Path.of("steamapps", "common",
         "Project Zomboid Dedicated Server");
     private static final int HTTP_TIMEOUT_MS = 8000;
 
@@ -70,7 +70,7 @@ public class Utils {
      *
      * @return The default Steam install path location for the current OS.
      */
-    public static Path getSteamInstallPath() {
+    public static Path getDefaultSteamLibraryPath() {
         if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
             return Path.of(System.getProperty("user.home"), "Library/Application Support/Steam");
         } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
@@ -85,8 +85,8 @@ public class Utils {
      *
      * @return The default game client install path location.
      */
-    public static Path getClientInstallPath() {
-        return getSteamInstallPath().resolve(CLIENT_INSTALL_PATH);
+    public static Path getDefaultClientGamePath() {
+        return getDefaultSteamLibraryPath().resolve(CLIENT_LIBRARY_PATH);
     }
 
     /**
@@ -94,8 +94,26 @@ public class Utils {
      *
      * @return The default game server install path location.
      */
-    public static Path getServerInstallPath() {
-        return getSteamInstallPath().resolve(SERVER_INSTALL_PATH);
+    public static Path getDefaultServerGamePath() {
+        return getDefaultSteamLibraryPath().resolve(SERVER_LIBRARY_PATH);
+    }
+
+    public static String getClientGamePath() {
+        var path = System.getenv("LEAF_CLIENT_GAME_PATH");
+        if (path != null) {
+            return path;
+        }
+
+        return getDefaultClientGamePath().toString();
+    }
+
+    public static String getServerGamePath() {
+        var path = System.getenv("LEAF_SERVER_GAME_PATH");
+        if (path != null) {
+            return path;
+        }
+
+        return getDefaultServerGamePath().toString();
     }
 
     public static String readString(URL url) throws IOException {
