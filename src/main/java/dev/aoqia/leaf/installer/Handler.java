@@ -15,10 +15,8 @@
  */
 package dev.aoqia.leaf.installer;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,6 +28,10 @@ import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.MetaHandler;
 import dev.aoqia.leaf.installer.util.Utils;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 public abstract class Handler implements InstallerProgress {
     protected static final int HORIZONTAL_SPACING = 4;
     protected static final int VERTICAL_SPACING = 6;
@@ -37,6 +39,7 @@ public abstract class Handler implements InstallerProgress {
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
 
     public JButton buttonInstall;
+    public JButton buttonCopy;
 
     public JComboBox<String> gameVersionComboBox;
     public JTextField installLocation;
@@ -58,7 +61,7 @@ public abstract class Handler implements InstallerProgress {
 
     public abstract String cliHelp();
 
-    //this isnt great, but works
+    // this isnt great, but works
     public void setupPane1(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
     }
 
@@ -78,11 +81,9 @@ public abstract class Handler implements InstallerProgress {
 
         setupPane1(pane, c, installerGui);
 
-        addRow(pane, c, "prompt.game.version",
-            gameVersionComboBox = new JComboBox<>(),
+        addRow(pane, c, "prompt.game.version", gameVersionComboBox = new JComboBox<>(),
             createSpacer(),
-            unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show" +
-                                                                    ".unstable")));
+            unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show.unstable")));
         unstableCheckbox.setSelected(false);
         unstableCheckbox.addActionListener(e -> {
             if (Main.GAME_VERSION_META.isComplete()) {
@@ -94,8 +95,7 @@ public abstract class Handler implements InstallerProgress {
             updateGameVersions();
         });
 
-        addRow(pane, c, "prompt.loader.version",
-            loaderVersionComboBox = new JComboBox<>());
+        addRow(pane, c, "prompt.loader.version", loaderVersionComboBox = new JComboBox<>());
 
         addRow(pane, c, "prompt.select.location", installLocation = new JTextField(20),
             selectFolderButton = new JButton());
@@ -109,36 +109,41 @@ public abstract class Handler implements InstallerProgress {
 
         setupPane2(pane, c, installerGui);
 
-        addRow(pane, c, null,
-            statusLabel = new JLabel());
+        addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
         addLastRow(pane, c, null,
-            buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
+            buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")),
+            buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"))
+        );
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
             install();
         });
+        buttonCopy.addActionListener(e -> {
+            Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(
+                    new StringSelection(
+                        String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
+                            gameVersionComboBox.getSelectedItem())),
+                    null);
+        });
 
         Main.LOADER_META.onComplete(versions -> {
-            int stableIndex = -1;
+            int latestStable = -1;
             for (int i = 0; i < versions.size(); ++i) {
                 final var version = versions.get(i);
 
                 loaderVersionComboBox.addItem(version.id());
-                if (!version.isUnstable()) {
-                    stableIndex = i;
+                if (latestStable == -1 && !version.isUnstable()) {
+                    latestStable = i;
                 }
             }
 
             loaderVersionComboBox.addItem(SELECT_CUSTOM_ITEM);
 
-            //If no stable versions are found, default to the latest version
-            if (stableIndex == -1) {
-                stableIndex = 0;
-            }
-
-            loaderVersionComboBox.setSelectedIndex(stableIndex);
+            loaderVersionComboBox.setSelectedIndex(latestStable);
             statusLabel.setText(Utils.BUNDLE.getString("prompt.ready.install"));
         });
 
