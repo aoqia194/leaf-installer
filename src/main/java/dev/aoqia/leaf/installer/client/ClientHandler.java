@@ -16,6 +16,7 @@
 package dev.aoqia.leaf.installer.client;
 
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +27,7 @@ import dev.aoqia.leaf.installer.Handler;
 import dev.aoqia.leaf.installer.InstallerGui;
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.util.*;
+
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
@@ -34,7 +36,7 @@ public class ClientHandler extends Handler {
 
     @Override
     public String name() {
-        return "Client";
+        return Utils.BUNDLE.getString("tab.client");
     }
 
     @Override
@@ -61,8 +63,17 @@ public class ClientHandler extends Handler {
 
                 String profileName = ClientInstaller.install(pzPath, gameVersion, loaderVersion,
                     createProfile.isSelected(), this);
-                SwingUtilities.invokeLater(() -> showInstalledMessage(loaderVersion.name,
-                    gameVersion, pzPath.resolve(".leaf/mods")));
+                SwingUtilities.invokeLater(() -> {
+                    showInstalledMessage(loaderVersion.name, gameVersion,
+                        pzPath.resolve(".leaf/mods"));
+
+                    // Copy to clipboard.
+                    Toolkit.getDefaultToolkit()
+                        .getSystemClipboard()
+                        .setContents(
+                            new StringSelection(String.format("-pzexeconfig %s.json", profileName)),
+                            null);
+                });
             } catch (Exception e) {
                 error(e);
             } finally {
@@ -73,9 +84,7 @@ public class ClientHandler extends Handler {
 
     @Override
     public void installCli(ArgumentParser args) throws Exception {
-        Path path = Paths.get(args.getOrDefault("dir", () -> {
-            return Utils.getClientInstallPath().toString();
-        }));
+        Path path = Paths.get(args.getOrDefault("dir", Utils::getClientGamePath));
         if (!Files.exists(path)) {
             throw new FileNotFoundException("Game directory not found at " + path);
         }
@@ -97,17 +106,17 @@ public class ClientHandler extends Handler {
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
         addRow(pane, c, null,
-            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.profile"), true));
-        installLocation.setText(Utils.getClientInstallPath().toString());
+            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), true));
+        installLocation.setText(Utils.getClientGamePath());
     }
 
     private void showInstalledMessage(String loaderVersion, String gameVersion,
         Path modsDirectory) {
         JEditorPane pane = new JEditorPane("text/html",
-            "<html><body style=\"" + buildEditorPaneStyle() + "\">" +
-            new MessageFormat(Utils.BUNDLE.getString("prompt.install.successful")).format(
-                new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL }
-            ) + "</body></html>");
+            String.format("<html><body style=\"%s\">%s</body></html>", buildEditorPaneStyle(),
+                new MessageFormat(Utils.BUNDLE.getString("prompt.install.successful")).format(
+                    new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL }
+                )));
         pane.setBackground(new Color(0, 0, 0, 0));
         pane.setEditable(false);
         pane.setCaret(new NoopCaret());
@@ -121,8 +130,8 @@ public class ClientHandler extends Handler {
                                Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                         Desktop.getDesktop().browse(e.getURL().toURI());
                     } else {
-                        throw new UnsupportedOperationException(
-                            "Failed to open " + e.getURL().toString());
+                        throw new UnsupportedOperationException("Failed to open "
+                                                                + e.getURL().toString());
                     }
                 }
             } catch (Throwable throwable) {
@@ -132,12 +141,10 @@ public class ClientHandler extends Handler {
 
         final Image iconImage = Toolkit.getDefaultToolkit()
             .getImage(ClassLoader.getSystemClassLoader().getResource("icon.png"));
-        JOptionPane.showMessageDialog(
-            null,
+        JOptionPane.showMessageDialog(null,
             pane,
             Utils.BUNDLE.getString("prompt.install.successful.title"),
             JOptionPane.INFORMATION_MESSAGE,
-            new ImageIcon(iconImage.getScaledInstance(64, 64, Image.SCALE_DEFAULT))
-        );
+            new ImageIcon(iconImage.getScaledInstance(64, 64, Image.SCALE_DEFAULT)));
     }
 }
