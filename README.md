@@ -14,7 +14,7 @@ An installer for the Project Zomboid bootstrapper, used to install leaf-loader
 - Select the correct game version that is installed and the directory at which the game is installed
 - Hit install!
   **Make sure that you read the post-installation message that shows up!**
-- Add the launch option `-pzexeconfig loader-{loaderVersion}-{gameVersion}.json` to your game
+- Add the launch option `-pzexeconfig leaf-{loaderVersion}-{gameVersion}.json` to your game
   through the Steam Library.
   If you missed the popup message, you can click the **Copy Launch Option** button.
 
