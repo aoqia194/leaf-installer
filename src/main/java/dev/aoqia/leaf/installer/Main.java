@@ -20,10 +20,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.server.ServerHandler;
 import dev.aoqia.leaf.installer.util.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Main {
     public static final List<Handler> HANDLERS = new ArrayList<>();
@@ -33,7 +34,6 @@ public class Main {
     public static GithubMetaHandler LOADER_META;
 
     public static void main(String[] args) throws IOException {
-
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
             // Use the operating system cert store
             System.setProperty("javax.net.ssl.trustStoreType", "WINDOWS-ROOT");

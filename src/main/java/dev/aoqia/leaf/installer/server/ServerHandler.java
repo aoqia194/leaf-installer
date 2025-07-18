@@ -15,7 +15,6 @@
  */
 package dev.aoqia.leaf.installer.server;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -28,7 +27,10 @@ import dev.aoqia.leaf.installer.InstallerGui;
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
 import dev.aoqia.leaf.installer.util.Utils;
+
+import javax.swing.*;
 
 public class ServerHandler extends Handler {
     @Override
@@ -46,10 +48,8 @@ public class ServerHandler extends Handler {
 
         new Thread(() -> {
             try {
-                ServerInstaller.install(Paths.get(installLocation.getText()).toAbsolutePath(),
-                    loaderVersion,
-                    gameVersion,
-                    this);
+                new ServerInstaller(Paths.get(installLocation.getText()).toAbsolutePath(),
+                    gameVersion, loaderVersion, this).install(false);
                 ServerPostInstallDialog.show(this);
             } catch (Exception e) {
                 error(e);
@@ -61,30 +61,35 @@ public class ServerHandler extends Handler {
 
     @Override
     public void installCli(ArgumentParser args) throws Exception {
+        final var os = OperatingSystem.CURRENT.toShortString();
         Path dir = Paths.get(args.getOrDefault("dir", () -> ".")).toAbsolutePath().normalize();
 
         if (!Files.isDirectory(dir)) {
-            throw new FileNotFoundException("Server directory not found at " + dir + " or not a directory");
+            throw new FileNotFoundException(
+                "Server directory not found at " + dir + " or not a directory");
         }
 
         LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
         String gameVersion = getGameVersion(args);
-        ServerInstaller.install(dir, loaderVersion, gameVersion, InstallerProgress.CONSOLE);
-        InstallerProgress.CONSOLE.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.done.start" +
-                                                                                          ".server")).format(
-            new Object[] { ServerInstaller.DEFAULT_LAUNCH_JAR_NAME }));
+        //ServerInstaller.install(dir, gameVersion, loaderVersion, InstallerProgress.CONSOLE);
+
+        InstallerProgress.CONSOLE.updateProgress(
+            new MessageFormat(Utils.BUNDLE.getString("progress.done.start.server." + os)).format(
+                null));
     }
 
-	@Override
-	public String cliHelp() {
-		return "-dir <install dir, default current dir> -pzversion <zomboid version, default latest> -loader <loader version, default latest>";
-	}
+    @Override
+    public String cliHelp() {
+        return "-dir <install dir> -- (default: current dir) " +
+               "-pzversion <zomboid version> -- (default: latest) " +
+               "-loader <loader version> -- (default: latest)";
+    }
 
-	@Override
-	public void setupPane1(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
-		if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-			return;
-		}
+    @Override
+    public void setupPane1(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
+        if (!Desktop.isDesktopSupported() ||
+            !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        }
     }
 
     @Override

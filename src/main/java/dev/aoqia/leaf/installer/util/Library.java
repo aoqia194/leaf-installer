@@ -40,11 +40,16 @@ public class Library {
     }
 
     public Library(JsonNode json) {
-        dependency = json.path("name").asText();
-        url = json.path("url").asText();
-        inputPath = null;
+        this.dependency = json.path("name").asText();
+        this.url = json.path("url").asText();
 
-        final var parts = dependency.split(":", 3);
+        if (!json.path("path").isMissingNode()) {
+            this.inputPath = Path.of(json.path("path").asText());
+        } else {
+            this.inputPath = null;
+        }
+
+        final var parts = this.dependency.split(":", 3);
         this.groupId = parts[0];
         this.artifactId = parts[1];
         this.version = parts[2];

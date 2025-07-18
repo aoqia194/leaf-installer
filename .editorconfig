@@ -1,8 +1,0 @@
-[*.gradle]
-indent_style = space
-
-[*.java]
-indent_style = space
-ij_continuation_indent_size = 4
-ij_java_imports_layout = $*,|,java.**,|,javax.**,|,*,|,net.fabricmc.**,|,dev.aoqia.**
-ij_java_class_count_to_use_import_on_demand = 999

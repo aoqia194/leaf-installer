@@ -15,237 +15,207 @@
  */
 package dev.aoqia.leaf.installer.server;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.Main;
-import dev.aoqia.leaf.installer.util.LeafService;
-import dev.aoqia.leaf.installer.util.InstallerProgress;
-import dev.aoqia.leaf.installer.util.Library;
-import dev.aoqia.leaf.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections4.iterators.IteratorChain;
 
 public class ServerInstaller {
-	private static final String servicesDir = "META-INF/services/";
-	private static final String manifestPath = "META-INF/MANIFEST.MF";
-	public static final String DEFAULT_LAUNCH_JAR_NAME = "leaf-server-launch.jar";
-	private static final Pattern SIGNATURE_FILE_PATTERN = Pattern.compile("META-INF/[^/]+\\.(SF|DSA|RSA|EC)");
+    private final Path gameDir;
+    private final String gameVersion;
+    private final Path libsDir;
+    private final LoaderVersion loaderVersion;
+    private final InstallerProgress progress;
 
-	public static void install(Path dir, LoaderVersion loaderVersion, String gameVersion, InstallerProgress progress) throws IOException {
-		Path launchJar = dir.resolve(DEFAULT_LAUNCH_JAR_NAME);
-		install(dir, loaderVersion, gameVersion, progress, launchJar);
-	}
+    public ServerInstaller(Path gameDir, String gameVersion, LoaderVersion loaderVersion,
+        InstallerProgress progress) {
+        this.gameDir = gameDir;
+        this.gameVersion = gameVersion;
+        this.loaderVersion = loaderVersion;
+        this.progress = progress;
 
-	public static void install(Path dir, LoaderVersion loaderVersion, String gameVersion, InstallerProgress progress, Path launchJar) throws IOException {
-		progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing.server")).format(new Object[]{String.format("%s(%s)", loaderVersion.name, gameVersion)}));
+        this.libsDir = gameDir.resolve(".leaf/libraries");
+    }
 
-		Files.createDirectories(dir);
+    public void install(boolean createConfig) throws IOException {
+        System.out.printf("Installing %s with leaf %s%n", gameVersion, loaderVersion.name);
 
-		Path libsDir = dir.resolve("java");
-		Files.createDirectories(libsDir);
+        progress.updateProgress(
+            new MessageFormat(Utils.BUNDLE.getString("progress.installing.server")).format(
+                new Object[] { String.format("%s (%s)", loaderVersion.name, gameVersion) }));
 
-		progress.updateProgress(Utils.BUNDLE.getString("progress.download.libraries"));
+        final var configName = String.format("leaf-%s-%s", loaderVersion.name, gameVersion);
 
-		List<Library> libraries = new ArrayList<>();
-		String mainClassMeta;
+        JsonNode loaderVersionJson;
+        if (loaderVersion.path == null) {
+            // Loader jar isn't custom, fetch json from GitHub.
+            loaderVersionJson = LeafService.queryMetaJson(
+                "loader/%s.json".formatted(loaderVersion.name));
+        } else {
+            // Loader jar is locally available, fetch json from Jar.
+            // Do this to prevent large GitHub traffic for dedicated servers.
+            try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
+                ZipEntry entry = zf.getEntry("leaf-installer.json");
+                loaderVersionJson = Main.OBJECT_MAPPER.readTree(
+                    Utils.readString(zf.getInputStream(entry)));
+            }
+        }
 
-		if (loaderVersion.path == null) { // loader jar unavailable, grab everything from meta
-			JsonNode json = LeafService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
+        final var libsJson = loaderVersionJson.path("libraries");
+        final var mainClass = loaderVersionJson.path("mainClass")
+            .path("server")
+            .asText();
+        final var mainClassInternal = mainClass.replace(".", "/");
+        Files.createDirectories(libsDir);
 
-			for (var libraryJson : json.get("libraries")) {
-				libraries.add(new Library(libraryJson));
-			}
+        // Putting the loader itself into the libs list to download/copy later.
+        final var obj = JsonNodeFactory.instance.objectNode();
+        obj.put("name", "dev.aoqia.leaf:loader:" + loaderVersion.name);
+        if (loaderVersion.path == null) {
+            obj.put("url", Reference.DEFAULT_MAVEN_SERVER);
+        } else {
+            obj.put("path", loaderVersion.path.toUri().toString());
+        }
+        ((ArrayNode) libsJson.path("common")).add(obj);
 
-			mainClassMeta = json.get("mainClass").asText();
-		} else { // loader jar available, generate library list from it
-			libraries.add(new Library(String.format("dev.aoqia.leaf:loader:%s", loaderVersion.name), null, loaderVersion.path));
-//			libraries.add(new Library(String.format("net.fabricmc:intermediary:%s", gameVersion), "https://maven.fabricmc.net/", null));
+        final var libs = new IteratorChain<>(libsJson.path("common").iterator(),
+            libsJson.path("server").iterator());
+        libs.forEachRemaining(json -> {
+            Library library = new Library(json);
+            Path libraryFile = libsDir.resolve(
+                "%s-%s.jar".formatted(library.artifactId, library.version));
 
-			try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
-				ZipEntry entry = zf.getEntry("leaf-installer.json");
-                JsonNode json = Main.OBJECT_MAPPER.readTree(Utils.readString(zf.getInputStream(entry)));
+            final var task = library.inputPath == null ? "copy" : "download";
 
-				var librariesElem = json.get("libraries");
-				for (var libraryJson : librariesElem.get("common")) {
-					libraries.add(new Library(libraryJson));
-				}
+            progress.updateProgress(new MessageFormat(
+                Utils.BUNDLE.getString("progress.%s.library.entry".formatted(task))).format(
+                new Object[] { library.dependency }));
 
-				for (var libraryJson : librariesElem.get("server")) {
-					libraries.add(new Library(libraryJson));
-				}
+            try {
+                if (library.inputPath == null) {
+                    LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
+                } else {
+                    Files.createDirectories(libraryFile.getParent());
+                    Files.copy(library.inputPath, libraryFile, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(
+                    "Failed to %s library %s".formatted(task, library.artifactId), e);
+            }
+        });
 
-				mainClassMeta = json.path("mainClass").path("server").asText();
-			}
-		}
+        if (createConfig) {
+            createNewConfig(configName, mainClassInternal);
+        }
+        createLaunchScript(configName, mainClass);
 
-		String mainClassManifest = "dev.aoqia.loader.launch.server.LeafServerLauncher";
-		List<Path> libraryFiles = new ArrayList<>();
+        progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
+    }
 
-		for (Library library : libraries) {
-			Path libraryFile = libsDir.resolve(library.getPath());
+    private void createNewConfig(String configName, String mainClass) throws IOException {
+        Path origConfig = gameDir.resolve("ProjectZomboid64.json");
+        if (Files.notExists(origConfig)) {
+            throw new RuntimeException(
+                Utils.BUNDLE.getString("progress.exception.no.launcher.config"));
+        }
 
-			if (library.inputPath == null) {
-				progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.dependency }));
-				LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
-			} else {
-				Files.createDirectories(libraryFile.getParent());
-				Files.copy(library.inputPath, libraryFile, StandardCopyOption.REPLACE_EXISTING);
-			}
+        Path bootstrapperConfig = gameDir.resolve(configName + ".json");
+        if (Files.exists(bootstrapperConfig)) {
+            throw new RuntimeException(
+                "Bootstrapper config %s already exists.".formatted(
+                    bootstrapperConfig));
+        }
 
-			libraryFiles.add(libraryFile);
+        try {
+            Files.copy(origConfig, bootstrapperConfig);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to copy original bootstrapper config: ", e);
+        }
 
-			if (library.dependency.matches("net\\.aoqia:leaf-loader:.*")) {
-				try (JarFile jarFile = new JarFile(libraryFile.toFile())) {
-					Manifest manifest = jarFile.getManifest();
-					mainClassManifest = manifest.getMainAttributes().getValue("Main-Class");
-				}
-			}
-		}
+        // Load version config and modify cloned bootstrapper config, then save to new config.
+        JsonNode bootstrapperConfigJson;
+        try {
+            bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
+                Files.readString(bootstrapperConfig));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read bootstrapper config: ", e);
+        }
+        ((ObjectNode) bootstrapperConfigJson).put("mainClass", mainClass);
 
-		progress.updateProgress(Utils.BUNDLE.getString("progress.generating.launch.jar"));
+        // Always remove these stupid JVM properties that shouldn't exist.
+        final ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
+        assert vmArgs.isArray();
+        for (int i = 0; i < vmArgs.size(); ++i) {
+            final var node = vmArgs.get(i);
+            if (node.asText().startsWith("-Xms") ||
+                node.asText().startsWith("-Xmx")
+                // node.asText().equals("-Djava.awt.headless=true")
+            ) {
+                vmArgs.remove(i--);
+            }
+        }
 
-//		boolean shadeLibraries = Utils.compareVersions(loaderVersion.name, "0.12.5") <= 0; // FabricServerLauncher in Fabric Loader 0.12.5 and earlier requires shading the libs into the launch jar
-        final boolean shadeLibraries = false;
-		makeLaunchJar(launchJar, mainClassMeta, mainClassManifest, libraryFiles, shadeLibraries, progress);
-	}
+        // Add our loader's libraries to the classpath.
+        // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
+        final ArrayNode classpath = (ArrayNode) bootstrapperConfigJson.path("classpath");
+        try (final Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
+            stream.forEach(path -> classpath.add(gameDir.relativize(path).toString()));
+        }
 
-	private static void makeLaunchJar(Path file, String launchMainClass, String jarMainClass, List<Path> libraryFiles,
-			boolean shadeLibraries, InstallerProgress progress) throws IOException {
-		Files.deleteIfExists(file);
+        try {
+            Files.writeString(bootstrapperConfig, bootstrapperConfigJson.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write bootstrapper config: ", e);
+        }
+    }
 
-		try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(file))) {
-			Set<String> addedEntries = new HashSet<>();
+    private void createLaunchScript(String configName, String mainClass) throws IOException {
+        final var in = gameDir.resolve("StartServer64.bat");
+        if (Files.notExists(in)) {
+            throw new RuntimeException("Server launch script does not exist.");
+        }
 
-			addedEntries.add(manifestPath);
-			zipOutputStream.putNextEntry(new ZipEntry(manifestPath));
+        String newScript = Files.readString(in);
 
-			Manifest manifest = new Manifest();
-			Attributes mainAttributes = manifest.getMainAttributes();
+        // Really dodgy way of doing it, probably breaks in the future.
 
-			mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-			mainAttributes.put(Attributes.Name.MAIN_CLASS, jarMainClass);
+        Pattern p = Pattern.compile("^SET\\s*PZ_CLASSPATH=(.+)[\\r\\n]+.*-cp.*(zombie(?:\\.\\w+)+)",
+            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+        Matcher m = p.matcher(newScript);
+        if (m.find() && m.groupCount() == 2) {
+            StringBuilder libs = new StringBuilder(m.group(1));
+            int i = 0;
+            try (final var stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
+                for (final var lib : stream.toList()) {
+                    final var libStr = gameDir.relativize(lib) + ";";
+                    libs.insert(i, libStr);
+                    i += libStr.length();
+                }
+            }
+            newScript = newScript.replace(m.group(1), libs).replace(m.group(2), mainClass);
+        } else {
+            throw new RuntimeException("Failed to find match regex in launch script");
+        }
 
-			if (!shadeLibraries) {
-				mainAttributes.put(Attributes.Name.CLASS_PATH, libraryFiles.stream()
-						.map(f -> file.getParent().relativize(f).normalize().toString().replace("\\", "/"))
-						.collect(Collectors.joining(" ")));
-			}
+        final var out = gameDir.resolve(configName + ".bat");
 
-			manifest.write(zipOutputStream);
-
-			zipOutputStream.closeEntry();
-
-			addedEntries.add("leaf-server-launch.properties");
-			zipOutputStream.putNextEntry(new ZipEntry("leaf-server-launch.properties"));
-			zipOutputStream.write(("launch.mainClass=" + launchMainClass + "\n").getBytes(StandardCharsets.UTF_8));
-			zipOutputStream.closeEntry();
-
-			if (shadeLibraries) {
-				Map<String, Set<String>> services = new HashMap<>();
-				byte[] buffer = new byte[32768];
-
-				for (Path f : libraryFiles) {
-					progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.generating.launch.jar.library")).format(new Object[]{f.getFileName().toString()}));
-
-					// read service definitions (merging them), copy other files
-					try (JarInputStream jis = new JarInputStream(Files.newInputStream(f))) {
-						JarEntry entry;
-
-						while ((entry = jis.getNextJarEntry()) != null) {
-							if (entry.isDirectory()) continue;
-
-							String name = entry.getName();
-
-							if (name.startsWith(servicesDir) && name.indexOf('/', servicesDir.length()) < 0) { // service definition file
-								parseServiceDefinition(name, jis, services);
-							} else if (SIGNATURE_FILE_PATTERN.matcher(name).matches()) {
-								// signature file, ignore
-							} else if (!addedEntries.add(name)) {
-								System.out.printf("duplicate file: %s%n", name);
-							} else {
-								JarEntry newEntry = new JarEntry(name);
-								zipOutputStream.putNextEntry(newEntry);
-
-								int r;
-
-								while ((r = jis.read(buffer, 0, buffer.length)) >= 0) {
-									zipOutputStream.write(buffer, 0, r);
-								}
-
-								zipOutputStream.closeEntry();
-							}
-						}
-					}
-				}
-
-				// write service definitions
-				for (Map.Entry<String, Set<String>> entry : services.entrySet()) {
-					JarEntry newEntry = new JarEntry(entry.getKey());
-					zipOutputStream.putNextEntry(newEntry);
-
-					writeServiceDefinition(entry.getValue(), zipOutputStream);
-
-					zipOutputStream.closeEntry();
-				}
-			}
-		}
-	}
-
-	private static void parseServiceDefinition(String name, InputStream rawIs, Map<String, Set<String>> services) throws IOException {
-		Collection<String> out = null;
-		BufferedReader reader = new BufferedReader(new InputStreamReader(rawIs, StandardCharsets.UTF_8));
-		String line;
-
-		while ((line = reader.readLine()) != null) {
-			int pos = line.indexOf('#');
-			if (pos >= 0) line = line.substring(0, pos);
-			line = line.trim();
-
-			if (!line.isEmpty()) {
-				if (out == null) out = services.computeIfAbsent(name, ignore -> new LinkedHashSet<>());
-
-				out.add(line);
-			}
-		}
-	}
-
-	private static void writeServiceDefinition(Collection<String> defs, OutputStream os) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-
-		for (String def : defs) {
-			writer.write(def);
-			writer.write('\n');
-		}
-
-		writer.flush();
-	}
+        Files.writeString(out, newScript);
+        out.toFile().setExecutable(true, false);
+    }
 }

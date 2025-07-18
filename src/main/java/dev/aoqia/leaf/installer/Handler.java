@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Locale;
 
+import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.MetaHandler;
@@ -112,22 +114,26 @@ public abstract class Handler implements InstallerProgress {
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
-        addLastRow(pane, c, null,
-            buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")),
-            buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"))
-        );
+        var comps = new ArrayList<JButton>();
+        comps.add(buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
+        if (this instanceof ClientHandler) {
+            final var buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"));
+            comps.add(buttonCopy);
+            buttonCopy.addActionListener(e -> {
+                Toolkit.getDefaultToolkit()
+                    .getSystemClipboard()
+                    .setContents(
+                        new StringSelection(
+                            String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
+                                gameVersionComboBox.getSelectedItem())),
+                        null);
+            });
+        }
+
+        addLastRow(pane, c, null, comps.toArray(new JButton[0]));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
             install();
-        });
-        buttonCopy.addActionListener(e -> {
-            Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .setContents(
-                    new StringSelection(
-                        String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
-                            gameVersionComboBox.getSelectedItem())),
-                    null);
         });
 
         Main.LOADER_META.onComplete(versions -> {
