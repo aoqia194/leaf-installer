@@ -1,11 +1,19 @@
 [versions]
 
+commons-collections = "4.5.0-M3"
 download = "5.6.0"
+jackson-databind = "2.18.2"
 jreleaser = "1.17.0"
+junit = "4.13.2"
 shadow = "8.3.0"
 spotless = "6.20.0"
 
 [libraries]
+
+commons-collections = { module = "org.apache.commons:commons-collections4", version.ref = "commons-collections" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind" }
+
+junit = { module = "junit:junit", version.ref = "junit" }
 
 [bundles]
 
