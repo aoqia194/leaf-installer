@@ -74,7 +74,7 @@ public class Utils {
         if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
             return Path.of(System.getProperty("user.home"), "Library/Application Support/Steam");
         } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
-            return Path.of(System.getProperty("user.home"), ".local/share/Steam");
+            return Path.of(System.getProperty("user.home"), ".steam/steam/");
         }
 
         return Path.of("C:\\Program Files (x86)\\Steam");
