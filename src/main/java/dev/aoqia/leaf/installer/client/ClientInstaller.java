@@ -21,13 +21,11 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 
 import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.iterators.IteratorChain;
 
 public class ClientInstaller {
@@ -55,10 +53,8 @@ public class ClientInstaller {
             "loader/%s.json".formatted(loaderVersion.name));
 
         final var libsJson = loaderVersionJson.path("libraries");
-        final var mainClass = loaderVersionJson.path("mainClass")
-            .path("client")
-            .asText()
-            .replace(".", "/");
+        final var mainClass = loaderVersionJson.path("mainClass").path("client").asText();
+        final var mainClassInternal = mainClass.replace(".", "/");
         Files.createDirectories(this.libsDir);
 
         // Putting loader dependency into the libs list for later download.
@@ -87,59 +83,13 @@ public class ClientInstaller {
             }
         });
 
-        // TODO: Handle other OS configs.
+        final var launchConfigUtil = new LaunchConfigUtil(gameDir);
         if (createConfig) {
-            createNewConfig(configName, mainClass);
+            launchConfigUtil.createConfig(configName, mainClassInternal);
         }
+        launchConfigUtil.createScript(configName, mainClass);
 
         progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
         return configName;
-    }
-
-    private void createNewConfig(String configName, String mainClass) throws IOException {
-        Path origConfig = gameDir.resolve("ProjectZomboid64.json");
-        if (Files.notExists(origConfig)) {
-            throw new RuntimeException(
-                Utils.BUNDLE.getString("progress.exception.no.launcher.config"));
-        }
-
-        Path bootstrapperConfig = gameDir.resolve(configName + ".json");
-        if (Files.exists(bootstrapperConfig)) {
-            throw new RuntimeException(
-                "Bootstrapper config %s already exists.".formatted(
-                    bootstrapperConfig));
-        }
-        Files.copy(origConfig, bootstrapperConfig);
-
-        // Load version config and modify cloned bootstrapper config, then save to new config.
-        JsonNode bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
-            Files.readString(bootstrapperConfig));
-        ((ObjectNode) bootstrapperConfigJson).put("mainClass", mainClass);
-
-        // Always remove these stupid JVM properties that shouldn't exist.
-        final ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
-        assert vmArgs.isArray();
-        for (int i = 0; i < vmArgs.size(); ++i) {
-            final var node = vmArgs.get(i);
-            if (node.asText().startsWith("-Xms") ||
-                node.asText().startsWith("-Xmx")
-                // node.asText().equals("-Djava.awt.headless=true")
-            ) {
-                vmArgs.remove(i--);
-            }
-        }
-
-        // Add our loader's libraries to the classpath.
-        // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
-        int i = 0;
-        final ArrayNode classpath = (ArrayNode) bootstrapperConfigJson.path("classpath");
-        try (final var stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
-            for (final var lib : stream.toList()) {
-                classpath.insert(i, gameDir.relativize(lib).toString());
-                i++;
-            }
-        }
-
-        Files.writeString(bootstrapperConfig, bootstrapperConfigJson.toString());
     }
 }

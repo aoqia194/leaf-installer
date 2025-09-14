@@ -63,6 +63,9 @@ public class Utils {
     public static final Path CLIENT_LIBRARY_PATH = Path.of("steamapps", "common", "ProjectZomboid");
     public static final Path SERVER_LIBRARY_PATH = Path.of("steamapps", "common",
         "Project Zomboid Dedicated Server");
+
+    public static final String LEAF_FOLDER = ".leaf";
+
     private static final int HTTP_TIMEOUT_MS = 8000;
 
     /**

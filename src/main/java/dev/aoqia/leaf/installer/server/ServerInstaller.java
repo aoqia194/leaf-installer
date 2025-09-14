@@ -20,9 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -33,7 +30,6 @@ import dev.aoqia.leaf.installer.util.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.iterators.IteratorChain;
 
 public class ServerInstaller {
@@ -50,7 +46,7 @@ public class ServerInstaller {
         this.loaderVersion = loaderVersion;
         this.progress = progress;
 
-        this.libsDir = gameDir.resolve(".leaf/libraries");
+        this.libsDir = gameDir.resolve(Utils.LEAF_FOLDER).resolve("libraries");
     }
 
     public void install(boolean createConfig) throws IOException {
@@ -78,9 +74,7 @@ public class ServerInstaller {
         }
 
         final var libsJson = loaderVersionJson.path("libraries");
-        final var mainClass = loaderVersionJson.path("mainClass")
-            .path("server")
-            .asText();
+        final var mainClass = loaderVersionJson.path("mainClass").path("server").asText();
         final var mainClassInternal = mainClass.replace(".", "/");
         Files.createDirectories(libsDir);
 
@@ -120,102 +114,12 @@ public class ServerInstaller {
             }
         });
 
+        final var launchConfigUtil = new LaunchConfigUtil(gameDir);
         if (createConfig) {
-            createNewConfig(configName, mainClassInternal);
+            launchConfigUtil.createConfig(configName, mainClassInternal);
         }
-        createLaunchScript(configName, mainClass);
+        launchConfigUtil.createScript(configName, mainClass);
 
         progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
-    }
-
-    private void createNewConfig(String configName, String mainClass) throws IOException {
-        Path origConfig = gameDir.resolve("ProjectZomboid64.json");
-        if (Files.notExists(origConfig)) {
-            throw new RuntimeException(
-                Utils.BUNDLE.getString("progress.exception.no.launcher.config"));
-        }
-
-        Path bootstrapperConfig = gameDir.resolve(configName + ".json");
-        if (Files.exists(bootstrapperConfig)) {
-            throw new RuntimeException(
-                "Bootstrapper config %s already exists.".formatted(
-                    bootstrapperConfig));
-        }
-
-        try {
-            Files.copy(origConfig, bootstrapperConfig);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to copy original bootstrapper config: ", e);
-        }
-
-        // Load version config and modify cloned bootstrapper config, then save to new config.
-        JsonNode bootstrapperConfigJson;
-        try {
-            bootstrapperConfigJson = Main.OBJECT_MAPPER.readTree(
-                Files.readString(bootstrapperConfig));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read bootstrapper config: ", e);
-        }
-        ((ObjectNode) bootstrapperConfigJson).put("mainClass", mainClass);
-
-        // Always remove these stupid JVM properties that shouldn't exist.
-        final ArrayNode vmArgs = (ArrayNode) bootstrapperConfigJson.path("vmArgs");
-        assert vmArgs.isArray();
-        for (int i = 0; i < vmArgs.size(); ++i) {
-            final var node = vmArgs.get(i);
-            if (node.asText().startsWith("-Xms") ||
-                node.asText().startsWith("-Xmx")
-                // node.asText().equals("-Djava.awt.headless=true")
-            ) {
-                vmArgs.remove(i--);
-            }
-        }
-
-        // Add our loader's libraries to the classpath.
-        // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
-        final ArrayNode classpath = (ArrayNode) bootstrapperConfigJson.path("classpath");
-        try (final Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
-            stream.forEach(path -> classpath.add(gameDir.relativize(path).toString()));
-        }
-
-        try {
-            Files.writeString(bootstrapperConfig, bootstrapperConfigJson.toString());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write bootstrapper config: ", e);
-        }
-    }
-
-    private void createLaunchScript(String configName, String mainClass) throws IOException {
-        final var in = gameDir.resolve("StartServer64.bat");
-        if (Files.notExists(in)) {
-            throw new RuntimeException("Server launch script does not exist.");
-        }
-
-        String newScript = Files.readString(in);
-
-        // Really dodgy way of doing it, probably breaks in the future.
-
-        Pattern p = Pattern.compile("^SET\\s*PZ_CLASSPATH=(.+)[\\r\\n]+.*-cp.*(zombie(?:\\.\\w+)+)",
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-        Matcher m = p.matcher(newScript);
-        if (m.find() && m.groupCount() == 2) {
-            StringBuilder libs = new StringBuilder(m.group(1));
-            int i = 0;
-            try (final var stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
-                for (final var lib : stream.toList()) {
-                    final var libStr = gameDir.relativize(lib) + ";";
-                    libs.insert(i, libStr);
-                    i += libStr.length();
-                }
-            }
-            newScript = newScript.replace(m.group(1), libs).replace(m.group(2), mainClass);
-        } else {
-            throw new RuntimeException("Failed to find match regex in launch script");
-        }
-
-        final var out = gameDir.resolve(configName + ".bat");
-
-        Files.writeString(out, newScript);
-        out.toFile().setExecutable(true, false);
     }
 }
