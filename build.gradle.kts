@@ -1,7 +1,7 @@
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.slurpersupport.NodeChildren
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.kotlin.dsl.jreleaser
 import org.jreleaser.model.Active
 import org.jreleaser.model.Http
 import java.net.URL
@@ -167,6 +167,8 @@ publishing {
 }
 
 jreleaser {
+//    setConfigFile("jreleaser.yml")
+
     project {
         name = rootProject.name
         version = rootProject.version.toString()
