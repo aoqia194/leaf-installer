@@ -22,9 +22,9 @@ import java.nio.file.Path;
 
 import mjson.Json;
 
-public final class FabricService {
+public final class LeafService {
 	private static int activeIndex = 0; // index into INSTANCES or -1 if set to a fixed service
-	private static FabricService fixedService;
+	private static LeafService fixedService;
 
 	private final String meta;
 	private final String maven;
@@ -73,7 +73,7 @@ public final class FabricService {
 		IOException exc = null;
 
 		do {
-			FabricService service = Reference.FABRIC_SERVICES[index];
+			LeafService service = Reference.FABRIC_SERVICES[index];
 
 			try {
 				R ret = handler.apply(service, arg);
@@ -97,7 +97,7 @@ public final class FabricService {
 	}
 
 	private interface Handler<A, R> {
-		R apply(FabricService service, A arg) throws IOException;
+		R apply(LeafService service, A arg) throws IOException;
 	}
 
 	/**
@@ -110,10 +110,10 @@ public final class FabricService {
 		if (mavenUrl == null) mavenUrl = Reference.DEFAULT_MAVEN_SERVER;
 
 		activeIndex = -1;
-		fixedService = new FabricService(metaUrl, mavenUrl);
+		fixedService = new LeafService(metaUrl, mavenUrl);
 	}
 
-	FabricService(String meta, String maven) {
+	LeafService(String meta, String maven) {
 		this.meta = meta;
 		this.maven = maven;
 	}

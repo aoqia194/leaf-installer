@@ -27,10 +27,10 @@ public class Reference {
 	static final String DEFAULT_META_SERVER = "https://meta.fabricmc.net/";
 	static final String DEFAULT_MAVEN_SERVER = "https://maven.fabricmc.net/";
 
-	static final FabricService[] FABRIC_SERVICES = {
-			new FabricService(DEFAULT_META_SERVER, DEFAULT_MAVEN_SERVER),
+	static final LeafService[] FABRIC_SERVICES = {
+			new LeafService(DEFAULT_META_SERVER, DEFAULT_MAVEN_SERVER),
 			// Do not use these fallback servers to interact with our web services. They can and will be unavailable at times and only support limited throughput.
-			new FabricService("https://meta2.fabricmc.net/", "https://maven2.fabricmc.net/"),
-			new FabricService("https://meta3.fabricmc.net/", "https://maven3.fabricmc.net/")
+			new LeafService("https://meta2.fabricmc.net/", "https://maven2.fabricmc.net/"),
+			new LeafService("https://meta3.fabricmc.net/", "https://maven3.fabricmc.net/")
 	};
 }

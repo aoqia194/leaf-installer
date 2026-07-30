@@ -43,7 +43,7 @@ public class LauncherMeta {
 	}
 
 	private static List<Version> getVersionsFromUrl(String url) throws IOException {
-		Json json = FabricService.queryJsonSubstitutedMaven(url);
+		Json json = LeafService.queryJsonSubstitutedMaven(url);
 
 		List<Version> versions = json.at("versions").asJsonList()
 				.stream()
@@ -72,7 +72,7 @@ public class LauncherMeta {
 
 		public VersionMeta getVersionMeta() throws IOException {
 			if (versionMeta == null) {
-				Json json = FabricService.queryJsonSubstitutedMaven(url);
+				Json json = LeafService.queryJsonSubstitutedMaven(url);
 				versionMeta = new VersionMeta(json);
 			}
 

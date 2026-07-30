@@ -50,7 +50,7 @@ import java.util.zip.ZipOutputStream;
 import mjson.Json;
 
 import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.Library;
 import dev.aoqia.leaf.installer.util.Utils;
@@ -80,7 +80,7 @@ public class ServerInstaller {
 		String mainClassMeta;
 
 		if (loaderVersion.path == null) { // loader jar unavailable, grab everything from meta
-			Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
+			Json json = LeafService.queryMetaJson(String.format("v2/versions/loader/%s/%s/server/json", gameVersion, loaderVersion.name));
 
 			for (Json libraryJson : json.at("libraries").asJsonList()) {
 				libraries.add(new Library(libraryJson));
@@ -116,7 +116,7 @@ public class ServerInstaller {
 
 			if (library.inputPath == null) {
 				progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.name}));
-				FabricService.downloadSubstitutedMaven(library.getURL(), libraryFile);
+				LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
 			} else {
 				Files.createDirectories(libraryFile.getParent());
 				Files.copy(library.inputPath, libraryFile, StandardCopyOption.REPLACE_EXISTING);

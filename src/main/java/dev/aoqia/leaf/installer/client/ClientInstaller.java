@@ -25,7 +25,7 @@ import java.text.MessageFormat;
 import mjson.Json;
 
 import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.Library;
 import dev.aoqia.leaf.installer.util.Reference;
@@ -48,7 +48,7 @@ public class ClientInstaller {
 		Path profileJar = profileDir.resolve(profileName + ".jar");
 		Files.deleteIfExists(profileJar);
 
-		Json json = FabricService.queryMetaJson(String.format("v2/versions/loader/%s/%s/profile/json", gameVersion, loaderVersion.name));
+		Json json = LeafService.queryMetaJson(String.format("v2/versions/loader/%s/%s/profile/json", gameVersion, loaderVersion.name));
 		Files.write(profileJson, json.toString().getBytes(StandardCharsets.UTF_8));
 
 		/*
@@ -64,7 +64,7 @@ public class ClientInstaller {
 
 			//System.out.println("Downloading "+url+" to "+libraryFile);
 			progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(new Object[]{library.name}));
-			FabricService.downloadSubstitutedMaven(url, libraryFile);
+			LeafService.downloadSubstitutedMaven(url, libraryFile);
 		}
 
 		progress.updateProgress(Utils.BUNDLE.getString("progress.done"));

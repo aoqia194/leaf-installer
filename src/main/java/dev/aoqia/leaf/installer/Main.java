@@ -25,7 +25,7 @@ import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.server.ServerHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.CrashDialog;
-import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.MetaHandler;
 import dev.aoqia.leaf.installer.util.OperatingSystem;
 
@@ -56,7 +56,7 @@ public class Main {
 		String mavenUrl = argumentParser.get("mavenurl");
 
 		if (metaUrl != null || mavenUrl != null) {
-			FabricService.setFixed(metaUrl, mavenUrl);
+			LeafService.setFixed(metaUrl, mavenUrl);
 		}
 
 		GAME_VERSION_META = new MetaHandler("game", "v2/versions/game");

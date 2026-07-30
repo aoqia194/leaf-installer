@@ -38,7 +38,7 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 	}
 
 	public void load() throws IOException {
-		Json json = FabricService.queryMetaJson(metaPath);
+		Json json = LeafService.queryMetaJson(metaPath);
 
 		this.versions = json.asJsonList()
 				.stream()
