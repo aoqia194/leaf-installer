@@ -40,7 +40,8 @@ public final class LeafService {
      */
     public static JsonNode queryMetaJson(String path) throws IOException {
         return invokeWithFallbacks(
-            (service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(service.meta + arg).toURL())),
+            (service, arg) -> Main.OBJECT_MAPPER.readTree(HttpClient.readString(URI.create(
+            service.meta + arg).toURL())),
             path);
     }
 
@@ -49,13 +50,14 @@ public final class LeafService {
      */
     public static JsonNode queryJsonSubstitutedMaven(String url) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-            return Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(url).toURL()));
+            return Main.OBJECT_MAPPER.readTree(HttpClient.readString(URI.create(url).toURL()));
         }
 
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
         return invokeWithFallbacks(
-            (service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(service.meta + arg).toURL())),
+            (service, arg) -> Main.OBJECT_MAPPER.readTree(HttpClient.readString(URI.create(
+            service.meta + arg).toURL())),
             path);
     }
 
@@ -64,14 +66,14 @@ public final class LeafService {
      */
     public static void downloadSubstitutedMaven(String url, Path out) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-            Utils.downloadFile(URI.create(url).toURL(), out);
+			HttpClient.downloadFile(URI.create(url).toURL(), out);
             return;
         }
 
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
         invokeWithFallbacks((service, arg) -> {
-            Utils.downloadFile(URI.create(service.meta + arg).toURL(), out);
+			HttpClient.downloadFile(URI.create(service.meta + arg).toURL(), out);
             return null;
         }, path);
     }

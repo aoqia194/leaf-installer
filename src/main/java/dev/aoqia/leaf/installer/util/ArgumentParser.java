@@ -18,7 +18,6 @@ package dev.aoqia.leaf.installer.util;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ArgumentParser {
@@ -62,12 +61,6 @@ public class ArgumentParser {
         return argMap.containsKey(argument);
     }
 
-    public void ifPresent(String argument, Consumer<String> consumer) {
-        if (has(argument)) {
-            consumer.accept(get(argument));
-        }
-    }
-
     public Optional<String> getCommand() {
         return command == null ? Optional.empty() : Optional.of(command);
     }
@@ -92,10 +85,10 @@ public class ArgumentParser {
                     throw new IllegalArgumentException(String.format("Argument %s already passed", key));
                 }
 
-                argMap.put(key, value);
-            } else if (i == 0) {
-                command = args[i];
-            }
-        }
-    }
+				argMap.put(key, value);
+			} else if (i == 0) {
+				command = args[i];
+			}
+		}
+	}
 }

@@ -31,6 +31,7 @@ import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.MetaHandler;
+import dev.aoqia.leaf.installer.util.MetaHandler.GameVersion;
 import dev.aoqia.leaf.installer.util.Utils;
 
 public abstract class Handler implements InstallerProgress {
@@ -276,18 +277,17 @@ public abstract class Handler implements InstallerProgress {
     }
 
     protected String getGameVersion(ArgumentParser args) {
-        return args.getOrDefault("pzversion", () -> {
-            System.out.println("Using latest game version");
-
-            return Main.GAME_VERSION_META.getLatestVersion(args.has("unstable")).id();
-        });
+		return getVersion(args.get("pzversion"), args.has("unstable"), Main.GAME_VERSION_META);
     }
 
     protected String getLoaderVersion(ArgumentParser args) {
-        return args.getOrDefault("loader", () -> {
-            System.out.println("Using latest loader version");
+		return getVersion(args.get("loader"), false, Main.LOADER_META);
+	}
 
-            return Main.LOADER_META.getLatestVersion(false).id();
-        });
+	private static String getVersion(String name, boolean snapshot, MetaHandler meta) {
+		GameVersion ret = meta.parseVersion(name, snapshot);
+		if (ret == null) throw new IllegalArgumentException(String.format("unknown %s version: %s", meta.getName(), name));
+
+		return ret.getVersion();
     }
 }
