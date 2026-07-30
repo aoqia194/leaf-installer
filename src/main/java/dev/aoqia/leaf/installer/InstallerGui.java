@@ -23,6 +23,8 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.formdev.flatlaf.FlatLightLaf;
+
 import dev.aoqia.leaf.installer.util.Utils;
 
 public class InstallerGui extends JFrame {
@@ -58,16 +60,8 @@ public class InstallerGui extends JFrame {
         }
     }
 
-    public static void start() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException,
-        IllegalAccessException {
-        //This will make people happy
-        String lafCls = UIManager.getSystemLookAndFeelClassName();
-        UIManager.setLookAndFeel(lafCls);
-
-        if (lafCls.endsWith("AquaLookAndFeel")) { // patch osx tab text color bug JDK-8251377
-            UIManager.put("TabbedPane.foreground", Color.BLACK);
-        }
-
+    public static void start() {
+        FlatLightLaf.setup();
         InstallerGui dialog = new InstallerGui();
         dialog.updateSize(true);
         dialog.setTitle(Utils.BUNDLE.getString("installer.title"));

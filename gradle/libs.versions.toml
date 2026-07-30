@@ -1,6 +1,7 @@
 [versions]
 commons-collections = "4.5.0"
 download = "5.7.0"
+flatlaf = "3.7.2"
 jackson-databind = "3.2.1"
 jreleaser = "1.25.0"
 junit = "4.13.2"
@@ -9,6 +10,7 @@ spotless = "8.9.0"
 
 [libraries]
 commons-collections = { module = "org.apache.commons:commons-collections4", version.ref = "commons-collections" }
+flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson-databind" }
 junit = { module = "junit:junit", version.ref = "junit" }
 

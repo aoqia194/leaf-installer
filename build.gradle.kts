@@ -42,6 +42,7 @@ repositories {
 dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.commons.collections)
+    implementation(libs.flatlaf)
 
     testImplementation(libs.junit)
 }
@@ -81,7 +82,10 @@ tasks {
             )
         }
 
-        minimize()
+        minimize {
+            exclude(dependency("${libs.flatlaf.get()}"))
+        }
+
         archiveClassifier.set("")
         exclude("icon.ico")
     }

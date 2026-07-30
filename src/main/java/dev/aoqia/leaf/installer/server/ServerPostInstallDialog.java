@@ -43,9 +43,7 @@ public class ServerPostInstallDialog extends JDialog {
         setIconImage(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemClassLoader().getResource("icon.png")));
     }
 
-    public static void show(ServerHandler serverHandler) throws ClassNotFoundException, UnsupportedLookAndFeelException,
-        InstantiationException, IllegalAccessException {
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    public static void show(ServerHandler serverHandler) {
         ServerPostInstallDialog dialog = new ServerPostInstallDialog(serverHandler);
         dialog.pack();
         dialog.setTitle(Utils.BUNDLE.getString("installer.title"));
