@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
 import dev.aoqia.leaf.installer.util.json.GitTreeObject;
@@ -45,9 +46,7 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.ComponentVe
             final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
                 new TypeReference<List<GameManifestVersion>>() {});
 
-            temp = versionsJson.stream()
-                .map(ComponentVersion::new)
-                .collect(Collectors.toList());
+            temp = versionsJson.stream().map(ComponentVersion::new).collect(Collectors.toList());
         } else {
             final var versionsJson = Main.OBJECT_MAPPER.treeToValue(versionsNode,
                 new TypeReference<Map<String, Object>>() {});

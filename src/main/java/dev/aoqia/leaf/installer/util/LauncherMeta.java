@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public record LauncherMeta(List<Version> versions) {
     private static LauncherMeta launcherMeta = null;
@@ -33,8 +33,7 @@ public record LauncherMeta(List<Version> versions) {
     }
 
     private static LauncherMeta load() throws IOException {
-        List<Version> versions = new ArrayList<>(
-            getVersionsFromUrl(Reference.ZOMBOID_VERSION_MANIFEST));
+        List<Version> versions = new ArrayList<>(getVersionsFromUrl(Reference.ZOMBOID_VERSION_MANIFEST));
         return new LauncherMeta(versions);
     }
 
@@ -57,8 +56,8 @@ public record LauncherMeta(List<Version> versions) {
         private VersionMeta versionMeta = null;
 
         public Version(JsonNode json) {
-            this.id = json.path("id").textValue();
-            this.url = json.path("url").textValue();
+            this.id = json.path("id").stringValue();
+            this.url = json.path("url").stringValue();
         }
 
         public VersionMeta getVersionMeta() throws IOException {

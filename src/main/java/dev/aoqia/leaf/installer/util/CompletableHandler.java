@@ -20,20 +20,19 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class CompletableHandler<T> {
-	private boolean complete;
+    private final List<Consumer<T>> completeConsumers = new ArrayList<>();
+    private boolean complete;
 
-	private final List<Consumer<T>> completeConsumers = new ArrayList<>();
+    public void onComplete(Consumer<T> completeConsumer) {
+        completeConsumers.add(completeConsumer);
+    }
 
-	public void onComplete(Consumer<T> completeConsumer) {
-		completeConsumers.add(completeConsumer);
-	}
+    protected void complete(T value) {
+        complete = true;
+        completeConsumers.forEach(listConsumer -> listConsumer.accept(value));
+    }
 
-	protected void complete(T value) {
-		complete = true;
-		completeConsumers.forEach(listConsumer -> listConsumer.accept(value));
-	}
-
-	public boolean isComplete() {
-		return complete;
-	}
+    public boolean isComplete() {
+        return complete;
+    }
 }

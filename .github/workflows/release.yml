@@ -3,26 +3,27 @@ name: Release
 on: workflow_dispatch
 
 jobs:
-  build:
-    name: Build
-    uses: ./.github/workflows/build.yml
-  
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: build
+    environment: publishing
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v7
 
-      - name: Fetch Build Output
-        uses: actions/download-artifact@v4
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
-          name: build-output
-          path: build/
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        run: ./gradlew build -S
 
       - name: Release
         env:

@@ -18,9 +18,7 @@ package dev.aoqia.leaf.installer.util;
 import java.util.Locale;
 
 public enum OperatingSystem {
-    WINDOWS,
-    MACOS,
-    LINUX;
+    WINDOWS, MACOS, LINUX;
 
     public static final OperatingSystem CURRENT = getCurrent();
 

@@ -1,21 +1,18 @@
 # Ignore everything
 /*
 
-# Folders
+!/.github
 !/gradle
 !/src
-!/.github
 
-# Files
 !/.gitignore
-!/build.gradle
+!/build.gradle.kts
+!/checkstyle.xml
+!/crowdin.yml
 !/gradle.properties
 !/gradlew
 !/gradlew.bat
 !/HEADER
 !/LICENSE
 !/README.md
-!/settings.gradle
-!/checkstyle.xml
-!/.editorconfig
-!/crowdin.yml
+!/settings.gradle.kts

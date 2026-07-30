@@ -16,10 +16,11 @@
 package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
+
 import dev.aoqia.leaf.installer.Main;
 
 public final class LeafService {
@@ -38,8 +39,9 @@ public final class LeafService {
      * Query Leaf Meta path and decode as JSON.
      */
     public static JsonNode queryMetaJson(String path) throws IOException {
-        return invokeWithFallbacks((service, arg) ->
-            Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(service.meta + arg))), path);
+        return invokeWithFallbacks(
+            (service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(service.meta + arg).toURL())),
+            path);
     }
 
     /**
@@ -47,13 +49,14 @@ public final class LeafService {
      */
     public static JsonNode queryJsonSubstitutedMaven(String url) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-            return Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(url)));
+            return Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(url).toURL()));
         }
 
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
-        return invokeWithFallbacks((service, arg) ->
-            Main.OBJECT_MAPPER.readTree(Utils.readString(new URL(service.maven + arg))), path);
+        return invokeWithFallbacks(
+            (service, arg) -> Main.OBJECT_MAPPER.readTree(Utils.readString(URI.create(service.meta + arg).toURL())),
+            path);
     }
 
     /**
@@ -61,14 +64,14 @@ public final class LeafService {
      */
     public static void downloadSubstitutedMaven(String url, Path out) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
-            Utils.downloadFile(new URL(url), out);
+            Utils.downloadFile(URI.create(url).toURL(), out);
             return;
         }
 
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
         invokeWithFallbacks((service, arg) -> {
-            Utils.downloadFile(new URL(service.maven + arg), out);
+            Utils.downloadFile(URI.create(service.meta + arg).toURL(), out);
             return null;
         }, path);
     }
@@ -134,9 +137,7 @@ public final class LeafService {
 
     @Override
     public String toString() {
-        return "LeafService{"
-               + "meta='" + meta + '\''
-               + ", maven='" + maven + "'}";
+        return "LeafService{" + "meta='" + meta + '\'' + ", maven='" + maven + "'}";
     }
 
     private interface Handler<A, R> {

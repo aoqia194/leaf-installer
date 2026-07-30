@@ -18,7 +18,7 @@ package dev.aoqia.leaf.installer.util;
 import java.io.File;
 import java.nio.file.Path;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public class Library {
     public final String dependency;
@@ -40,23 +40,29 @@ public class Library {
     }
 
     public Library(JsonNode json) {
-        dependency = json.path("name").asText();
-        url = json.path("url").asText();
-        inputPath = null;
+        this.dependency = json.path("name").asString();
+        this.url = json.path("url").asString();
 
-        final var parts = dependency.split(":", 3);
+        if (!json.path("path").isMissingNode()) {
+            this.inputPath = Path.of(json.path("path").asString());
+        } else {
+            this.inputPath = null;
+        }
+
+        final var parts = this.dependency.split(":", 3);
         this.groupId = parts[0];
         this.artifactId = parts[1];
         this.version = parts[2];
     }
 
     public String getURL() {
-        return url + "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version,
-            artifactId, version);
+        return url + "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version, artifactId,
+            version);
     }
 
     public String getPath() {
-        return "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version,
-            artifactId, version).replaceAll(" ", "_").replaceAll("/", File.separator);
+        return "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version, artifactId, version)
+            .replace(" ", "_")
+            .replaceAll("/", File.separator);
     }
 }

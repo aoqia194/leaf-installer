@@ -15,36 +15,35 @@
  */
 package dev.aoqia.leaf.installer.util;
 
-import java.awt.event.MouseEvent;
-
 import javax.swing.text.DefaultCaret;
+import java.awt.event.MouseEvent;
 
 // Disables text selection and the caret.
 public class NoopCaret extends DefaultCaret {
-	public NoopCaret() {
-		setBlinkRate(0);
-		super.setSelectionVisible(false);
-	}
+    public NoopCaret() {
+        setBlinkRate(0);
+        super.setSelectionVisible(false);
+    }
 
-	@Override
-	public int getDot() {
-		return 0;
-	}
+    @Override
+    protected void positionCaret(MouseEvent e) {
+    }
 
-	@Override
-	public int getMark() {
-		return 0;
-	}
+    @Override
+    protected void moveCaret(MouseEvent e) {
+    }
 
-	@Override
-	public void setSelectionVisible(boolean vis) {
-	}
+    @Override
+    public void setSelectionVisible(boolean vis) {
+    }
 
-	@Override
-	protected void positionCaret(MouseEvent e) {
-	}
+    @Override
+    public int getDot() {
+        return 0;
+    }
 
-	@Override
-	protected void moveCaret(MouseEvent e) {
-	}
+    @Override
+    public int getMark() {
+        return 0;
+    }
 }

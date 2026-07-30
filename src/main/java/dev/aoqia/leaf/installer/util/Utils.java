@@ -28,29 +28,28 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Locale;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
+    public static final String LEAF_FOLDER = ".leaf";
     public static final DateFormat ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-    public static final ResourceBundle BUNDLE = ResourceBundle.getBundle("lang/installer",
-        Locale.getDefault(),
+    public static final ResourceBundle BUNDLE = ResourceBundle.getBundle("lang/installer", Locale.getDefault(),
         new ResourceBundle.Control() {
             @Override
-            public ResourceBundle newBundle(String baseName,
-                Locale locale,
-                String format,
-                ClassLoader loader,
+            public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
                 boolean reload) throws IllegalAccessException, InstantiationException, IOException {
                 final String bundleName = toBundleName(baseName, locale);
-                final String resourceName = toResourceName(bundleName, "properties").toLowerCase(
-                    Locale.ROOT);
+                final String resourceName = toResourceName(bundleName, "properties").toLowerCase(Locale.ROOT);
 
                 try (InputStream stream = loader.getResourceAsStream(resourceName)) {
                     if (stream != null) {
-                        try (InputStreamReader reader = new InputStreamReader(stream,
-                            StandardCharsets.UTF_8)) {
+                        try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                             return new PropertyResourceBundle(reader);
                         }
                     }
@@ -60,42 +59,27 @@ public class Utils {
             }
         });
 
-    public static final Path CLIENT_LIBRARY_PATH = Path.of("steamapps", "common", "ProjectZomboid");
-    public static final Path SERVER_LIBRARY_PATH = Path.of("steamapps", "common",
-        "Project Zomboid Dedicated Server");
     private static final int HTTP_TIMEOUT_MS = 8000;
 
-    /**
-     * Copied from loom's Constants class.
-     *
-     * @return The default Steam install path location for the current OS.
-     */
     public static Path getDefaultSteamLibraryPath() {
         if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
-            return Path.of(System.getProperty("user.home"), "Library/Application Support/Steam");
+            return Path.of(System.getProperty("user.home"), "Library", "Application Support", "Steam");
         } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
-            return Path.of(System.getProperty("user.home"), ".local/share/Steam");
+            return Path.of(System.getProperty("user.home"), ".steam", "steam");
         }
 
-        return Path.of("C:\\Program Files (x86)\\Steam");
+        return Path.of("C:\\", "Program Files (x86)", "Steam");
     }
 
-    /**
-     * Copied from loom's Constants class.
-     *
-     * @return The default game client install path location.
-     */
     public static Path getDefaultClientGamePath() {
-        return getDefaultSteamLibraryPath().resolve(CLIENT_LIBRARY_PATH);
+        return getDefaultSteamLibraryPath().resolve("steamapps").resolve("common").resolve("ProjectZomboid");
     }
 
-    /**
-     * Copied from loom's Constants class.
-     *
-     * @return The default game server install path location.
-     */
     public static Path getDefaultServerGamePath() {
-        return getDefaultSteamLibraryPath().resolve(SERVER_LIBRARY_PATH);
+        return getDefaultSteamLibraryPath()
+            .resolve("steamapps")
+            .resolve("common")
+            .resolve("Project Zomboid Dedicated Server");
     }
 
     public static String getClientGamePath() {
@@ -179,8 +163,7 @@ public class Utils {
     }
 
     public static String getProfileIcon() {
-        try (InputStream is = Utils.class.getClassLoader()
-            .getResourceAsStream("profile_icon.png")) {
+        try (InputStream is = Utils.class.getClassLoader().getResourceAsStream("profile_icon.png")) {
             byte[] ret = new byte[4096];
             int offset = 0;
             int len;
@@ -192,8 +175,7 @@ public class Utils {
                 }
             }
 
-            return "data:image/png;base64," +
-                   Base64.getEncoder().encodeToString(Arrays.copyOf(ret, offset));
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(Arrays.copyOf(ret, offset));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -251,8 +233,7 @@ public class Utils {
             return versionA.compareTo(versionB);
         }
 
-        int cmp = compareVersionGroups(matcherA.group(1),
-            matcherB.group(1)); // compare version core
+        int cmp = compareVersionGroups(matcherA.group(1), matcherB.group(1)); // compare version core
         if (cmp != 0) {
             return cmp;
         }
