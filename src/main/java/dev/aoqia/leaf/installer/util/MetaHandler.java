@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+
 import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.GameManifestVersion;
 import dev.aoqia.leaf.installer.util.json.GitTreeObject;

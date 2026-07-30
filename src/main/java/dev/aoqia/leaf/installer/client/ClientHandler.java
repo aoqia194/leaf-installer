@@ -61,8 +61,8 @@ public class ClientHandler extends Handler {
                         "progress.exception.no.launcher.directory"));
                 }
 
-                String profileName = ClientInstaller.install(pzPath, gameVersion, loaderVersion,
-                    createProfile.isSelected(), this);
+                String profileName = new ClientInstaller(pzPath, gameVersion, loaderVersion,
+                    this).install(createProfile.isSelected());
                 SwingUtilities.invokeLater(() -> {
                     showInstalledMessage(loaderVersion.name, gameVersion,
                         pzPath.resolve(".leaf/mods"));
@@ -92,8 +92,8 @@ public class ClientHandler extends Handler {
         String gameVersion = getGameVersion(args);
         LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
 
-        String profileName = ClientInstaller.install(path, gameVersion, loaderVersion,
-            args.has("noprofile"), InstallerProgress.CONSOLE);
+        new ClientInstaller(path, gameVersion, loaderVersion, InstallerProgress.CONSOLE).install(
+            !args.has("noprofile"));
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ClientHandler extends Handler {
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
         addRow(pane, c, null,
-            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), true));
+            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), false));
         installLocation.setText(Utils.getClientGamePath());
     }
 

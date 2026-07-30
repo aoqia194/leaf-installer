@@ -1,0 +1,25 @@
+name: Add new issues/PRs to GitHub project board
+
+on:
+  issues:
+    types:
+      - labeled
+  pull_request:
+    types:
+      - labeled
+
+permissions:
+  repository-projects: write
+
+jobs:
+  add-to-project:
+    name: Add to project
+    runs-on: ubuntu-latest
+    environment: triage
+    steps:
+      - uses: actions/add-to-project@v2
+        with:
+          project-url: https://github.com/users/${{ github.repository_owner }}/projects/6
+          github-token: ${{ secrets.PAT_LEAF_PROJECTS }}
+          labeled: status/needs-triage
+          label-operator: AND

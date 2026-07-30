@@ -18,19 +18,19 @@ package dev.aoqia.leaf.installer.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public class VersionMeta {
     public final String id;
     public final Map<String, Download> downloads;
 
     public VersionMeta(JsonNode json) {
-        id = json.path("id").textValue();
+        id = json.path("id").stringValue();
         downloads = new HashMap<>();
 
-        json.path("downloads").fields().forEachRemaining(entry -> {
-            downloads.put(entry.getKey(), new Download(entry.getValue()));
-        });
+        json.path("downloads")
+            .properties()
+            .forEach(entry -> downloads.put(entry.getKey(), new Download(entry.getValue())));
     }
 
     public static class Download {
@@ -39,9 +39,9 @@ public class VersionMeta {
         public final String url;
 
         public Download(JsonNode json) {
-            sha1 = json.path("sha1").textValue();
+            sha1 = json.path("sha1").stringValue();
             size = json.path("size").longValue();
-            url = json.path("url").textValue();
+            url = json.path("url").stringValue();
         }
     }
 }

@@ -15,23 +15,24 @@
  */
 package dev.aoqia.leaf.installer;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Locale;
 
+import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.MetaHandler;
 import dev.aoqia.leaf.installer.util.MetaHandler.GameVersion;
 import dev.aoqia.leaf.installer.util.Utils;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 public abstract class Handler implements InstallerProgress {
     protected static final int HORIZONTAL_SPACING = 4;
@@ -74,16 +75,12 @@ public abstract class Handler implements InstallerProgress {
         pane.setBorder(new EmptyBorder(4, 4, 4, 4));
 
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(VERTICAL_SPACING,
-            HORIZONTAL_SPACING,
-            VERTICAL_SPACING,
-            HORIZONTAL_SPACING);
+        c.insets = new Insets(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING);
         c.gridx = c.gridy = 0;
 
         setupPane1(pane, c, installerGui);
 
-        addRow(pane, c, "prompt.game.version", gameVersionComboBox = new JComboBox<>(),
-            createSpacer(),
+        addRow(pane, c, "prompt.game.version", gameVersionComboBox = new JComboBox<>(), createSpacer(),
             unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show.unstable")));
         unstableCheckbox.setSelected(false);
         unstableCheckbox.addActionListener(e -> {
@@ -102,33 +99,33 @@ public abstract class Handler implements InstallerProgress {
             selectFolderButton = new JButton());
         selectFolderButton.setText("...");
         selectFolderButton.setPreferredSize(
-            new Dimension(installLocation.getPreferredSize().height,
-                installLocation.getPreferredSize().height));
+            new Dimension(installLocation.getPreferredSize().height, installLocation.getPreferredSize().height));
         selectFolderButton.addActionListener(
-            e -> InstallerGui.selectInstallLocation(() -> installLocation.getText(),
-                s -> installLocation.setText(s)));
+            e -> InstallerGui.selectInstallLocation(() -> installLocation.getText(), s -> installLocation.setText(s)));
 
         setupPane2(pane, c, installerGui);
 
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
-        addLastRow(pane, c, null,
-            buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")),
-            buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"))
-        );
+        var comps = new ArrayList<JButton>();
+        comps.add(buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
+//        if (this instanceof ClientHandler) {
+//            final var buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"));
+//            comps.add(buttonCopy);
+//            buttonCopy.addActionListener(e -> {
+//                Toolkit.getDefaultToolkit()
+//                    .getSystemClipboard()
+//                    .setContents(new StringSelection(
+//                        String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
+//                            gameVersionComboBox.getSelectedItem())), null);
+//            });
+//        }
+
+        addLastRow(pane, c, null, comps.toArray(new JButton[0]));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
             install();
-        });
-        buttonCopy.addActionListener(e -> {
-            Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .setContents(
-                    new StringSelection(
-                        String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
-                            gameVersionComboBox.getSelectedItem())),
-                    null);
         });
 
         Main.LOADER_META.onComplete(versions -> {
@@ -216,8 +213,7 @@ public abstract class Handler implements InstallerProgress {
         String st = sw.toString().trim();
         System.err.println(st);
 
-        String html = String.format("<html><body style=\"%s\">%s</body></html>",
-            buildEditorPaneStyle(),
+        String html = String.format("<html><body style=\"%s\">%s</body></html>", buildEditorPaneStyle(),
             st.replace(System.lineSeparator(), "<br>").replace("\t", "&ensp;"));
         JEditorPane textPane = new JEditorPane("text/html", html);
         textPane.setEditable(false);
@@ -225,9 +221,7 @@ public abstract class Handler implements InstallerProgress {
         statusLabel.setText(throwable.getLocalizedMessage());
         statusLabel.setForeground(Color.RED);
 
-        JOptionPane.showMessageDialog(pane,
-            textPane,
-            Utils.BUNDLE.getString("prompt.exception.occurrence"),
+        JOptionPane.showMessageDialog(pane, textPane, Utils.BUNDLE.getString("prompt.exception.occurrence"),
             JOptionPane.ERROR_MESSAGE);
     }
 
@@ -236,36 +230,19 @@ public abstract class Handler implements InstallerProgress {
         Font font = label.getFont();
         Color color = label.getBackground();
         return String.format(Locale.ENGLISH,
-            "font-family:%s;font-weight:%s;font-size:%dpt;background-color: rgb(%d,%d," +
-            "%d);",
-            font.getFamily(),
-            (font.isBold() ? "bold" : "normal"),
-            font.getSize(),
-            color.getRed(),
-            color.getGreen(),
-            color.getBlue()
-        );
+            "font-family:%s;font-weight:%s;font-size:%dpt;background-color: rgb(%d,%d," + "%d);", font.getFamily(),
+            (font.isBold() ? "bold" : "normal"), font.getSize(), color.getRed(), color.getGreen(), color.getBlue());
     }
 
-    protected void addRow(Container parent,
-        GridBagConstraints c,
-        String label,
-        Component... components) {
+    protected void addRow(Container parent, GridBagConstraints c, String label, Component... components) {
         addRow(parent, c, false, label, components);
     }
 
-    protected void addLastRow(Container parent,
-        GridBagConstraints c,
-        String label,
-        Component... components) {
+    protected void addLastRow(Container parent, GridBagConstraints c, String label, Component... components) {
         addRow(parent, c, true, label, components);
     }
 
-    private void addRow(Container parent,
-        GridBagConstraints c,
-        boolean last,
-        String label,
-        Component... components) {
+    private void addRow(Container parent, GridBagConstraints c, boolean last, String label, Component... components) {
         if (label != null) {
             c.gridwidth = 1;
             c.anchor = GridBagConstraints.LINE_END;

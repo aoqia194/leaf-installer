@@ -15,34 +15,30 @@
  */
 package dev.aoqia.leaf.installer.util;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
+import javax.swing.*;
+import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.WindowConstants;
-
 public class CrashDialog {
-	public CrashDialog(Throwable throwable) {
-		JFrame frame = new JFrame(String.format("Leaf installer %s has crashed!", CrashDialog.class.getPackage().getImplementationVersion()));
-		Container pane = frame.getContentPane();
-		pane.setLayout(new BorderLayout());
+    public CrashDialog(Throwable throwable) {
+        JFrame frame = new JFrame(
+            String.format("Leaf installer %s has crashed!", CrashDialog.class.getPackage().getImplementationVersion()));
+        Container pane = frame.getContentPane();
+        pane.setLayout(new BorderLayout());
 
-		JTextArea text = new JTextArea();
-		text.setTabSize(2);
-		pane.add(new JScrollPane(text), BorderLayout.CENTER);
+        JTextArea text = new JTextArea();
+        text.setTabSize(2);
+        pane.add(new JScrollPane(text), BorderLayout.CENTER);
 
-		StringWriter stringWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(stringWriter));
-		String stackTrace = stringWriter.toString();
-		text.setText(stackTrace);
+        StringWriter stringWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stringWriter));
+        String stackTrace = stringWriter.toString();
+        text.setText(stackTrace);
 
-		frame.setSize(600, 400);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.doLayout();
-		frame.setVisible(true);
-	}
+        frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.doLayout();
+        frame.setVisible(true);
+    }
 }

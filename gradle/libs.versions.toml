@@ -1,0 +1,19 @@
+[versions]
+commons-collections = "4.5.0"
+download = "5.7.0"
+jackson-databind = "3.2.1"
+jreleaser = "1.25.0"
+junit = "4.13.2"
+shadow = "9.6.1"
+spotless = "8.9.0"
+
+[libraries]
+commons-collections = { module = "org.apache.commons:commons-collections4", version.ref = "commons-collections" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson-databind" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+download = { id = "de.undercouch.download", version.ref = "download" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

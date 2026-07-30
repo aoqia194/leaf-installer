@@ -20,10 +20,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+
 import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.server.ServerHandler;
-import dev.aoqia.leaf.installer.util.*;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.CrashDialog;
+import dev.aoqia.leaf.installer.util.GithubMetaHandler;
+import dev.aoqia.leaf.installer.util.LeafService;
+import dev.aoqia.leaf.installer.util.MetaHandler;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
 
 public class Main {
     public static final List<Handler> HANDLERS = new ArrayList<>();
@@ -33,7 +39,6 @@ public class Main {
     public static GithubMetaHandler LOADER_META;
 
     public static void main(String[] args) throws IOException {
-
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
             // Use the operating system cert store
             System.setProperty("javax.net.ssl.trustStoreType", "WINDOWS-ROOT");
@@ -41,8 +46,7 @@ public class Main {
 
         System.setProperty("java.net.useSystemProxies", "true");
 
-        System.out.println("Loading Leaf Installer: " +
-                           Main.class.getPackage().getImplementationVersion());
+        System.out.println("Loading Leaf Installer: " + Main.class.getPackage().getImplementationVersion());
 
         HANDLERS.add(new ClientHandler());
         HANDLERS.add(new ServerHandler());
@@ -58,10 +62,8 @@ public class Main {
             LeafService.setFixed(metaUrl, mavenUrl);
         }
 
-        GAME_VERSION_META = new MetaHandler(
-            "manifests/client/" + OperatingSystem.CURRENT.toShortString() +
-            "/version_manifest.json");
-        LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", "loader");
+        GAME_VERSION_META = new MetaHandler("dist/manifests/index.json");
+        LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
 
         // Default to the help command in a headless environment
         if (GraphicsEnvironment.isHeadless() && command == null) {
@@ -77,9 +79,7 @@ public class Main {
             }
         } else if (command.equals("help")) {
             System.out.println("help - Opens this menu");
-            HANDLERS.forEach(handler -> System.out.printf("%s %s\n",
-                handler.name().toLowerCase(),
-                handler.cliHelp()));
+            HANDLERS.forEach(handler -> System.out.printf("%s %s\n", handler.name().toLowerCase(), handler.cliHelp()));
             loadMetadata();
 
             System.out.printf("\nLatest Version: %s\nLatest Loader: %s\n",
@@ -93,8 +93,7 @@ public class Main {
                     try {
                         handler.installCli(argumentParser);
                     } catch (Exception e) {
-                        throw new RuntimeException("Failed to install " + handler.name(),
-                            e);
+                        throw new RuntimeException("Failed to install " + handler.name(), e);
                     }
 
                     return;
