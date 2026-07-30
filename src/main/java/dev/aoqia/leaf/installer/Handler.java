@@ -19,15 +19,12 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Locale;
 
-import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.MetaHandler;
@@ -41,7 +38,6 @@ public abstract class Handler implements InstallerProgress {
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
 
     public JButton buttonInstall;
-    public JButton buttonCopy;
 
     public JComboBox<String> gameVersionComboBox;
     public JTextField installLocation;
@@ -53,6 +49,15 @@ public abstract class Handler implements InstallerProgress {
 
     protected static Component createSpacer() {
         return Box.createRigidArea(new Dimension(4, 0));
+    }
+
+    private static String getVersion(String name, boolean snapshot, MetaHandler meta) {
+        GameVersion ret = meta.parseVersion(name, snapshot);
+        if (ret == null) {
+            throw new IllegalArgumentException(String.format("unknown %s version: %s", meta.getName(), name));
+        }
+
+        return ret.id();
     }
 
     public abstract String name();
@@ -89,9 +94,7 @@ public abstract class Handler implements InstallerProgress {
             }
         });
 
-        Main.GAME_VERSION_META.onComplete(versions -> {
-            updateGameVersions();
-        });
+        Main.GAME_VERSION_META.onComplete(versions -> updateGameVersions());
 
         addRow(pane, c, "prompt.loader.version", loaderVersionComboBox = new JComboBox<>());
 
@@ -108,21 +111,7 @@ public abstract class Handler implements InstallerProgress {
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
-        var comps = new ArrayList<JButton>();
-        comps.add(buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
-//        if (this instanceof ClientHandler) {
-//            final var buttonCopy = new JButton(Utils.BUNDLE.getString("prompt.copy"));
-//            comps.add(buttonCopy);
-//            buttonCopy.addActionListener(e -> {
-//                Toolkit.getDefaultToolkit()
-//                    .getSystemClipboard()
-//                    .setContents(new StringSelection(
-//                        String.format("-pzexeconfig leaf-%s-%s.json", queryLoaderVersion().name,
-//                            gameVersionComboBox.getSelectedItem())), null);
-//            });
-//        }
-
-        addLastRow(pane, c, null, comps.toArray(new JButton[0]));
+        addLastRow(pane, c, null, buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
             install();
@@ -145,13 +134,15 @@ public abstract class Handler implements InstallerProgress {
             statusLabel.setText(Utils.BUNDLE.getString("prompt.ready.install"));
         });
 
+        installerGui.updateSize(true);
+
         return pane;
     }
 
     private void updateGameVersions() {
         gameVersionComboBox.removeAllItems();
 
-        for (MetaHandler.ComponentVersion version : Main.GAME_VERSION_META.getVersions()) {
+        for (MetaHandler.GameVersion version : Main.GAME_VERSION_META.getVersions()) {
             if (!unstableCheckbox.isSelected() && version.isUnstable()) {
                 continue;
             }
@@ -277,17 +268,10 @@ public abstract class Handler implements InstallerProgress {
     }
 
     protected String getGameVersion(ArgumentParser args) {
-		return getVersion(args.get("pzversion"), args.has("unstable"), Main.GAME_VERSION_META);
+        return getVersion(args.get("pzversion"), args.has("unstable"), Main.GAME_VERSION_META);
     }
 
     protected String getLoaderVersion(ArgumentParser args) {
-		return getVersion(args.get("loader"), false, Main.LOADER_META);
-	}
-
-	private static String getVersion(String name, boolean snapshot, MetaHandler meta) {
-		GameVersion ret = meta.parseVersion(name, snapshot);
-		if (ret == null) throw new IllegalArgumentException(String.format("unknown %s version: %s", meta.getName(), name));
-
-		return ret.getVersion();
+        return getVersion(args.get("loader"), false, Main.LOADER_META);
     }
 }

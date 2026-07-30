@@ -39,10 +39,6 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
         this.metaPath = path;
     }
 
-	public String getName() {
-		return name;
-	}
-
     public void load() throws IOException {
         final JsonNode versionTableNode = LeafService.queryMetaJson(metaPath);
         final JsonNode versionsNode = versionTableNode.path("versions");
@@ -60,9 +56,7 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
                 new TypeReference<Map<String, Object>>() {});
 
             temp = new ArrayList<>();
-            versionsJson.forEach((key, value) -> {
-                temp.add(new GameVersion(key));
-            });
+            versionsJson.forEach((key, value) -> temp.add(new GameVersion(key)));
         }
         this.versions = temp;
 
@@ -71,6 +65,10 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 
     public List<GameVersion> getVersions() {
         return Collections.unmodifiableList(versions);
+    }
+
+    public void setVersions(List<GameVersion> versions) {
+        this.versions = versions;
     }
 
     public GameVersion getLatestVersion(boolean unstable) {
@@ -102,6 +100,14 @@ public class MetaHandler extends CompletableHandler<List<MetaHandler.GameVersion
 			return null;
 		}
 	}
+
+    public String getName() {
+        return name;
+    }
+
+    public String getMetaPath() {
+        return metaPath;
+    }
 
     public static class GameVersion {
         String id;

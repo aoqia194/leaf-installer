@@ -33,17 +33,17 @@ public class GithubMetaHandler extends MetaHandler {
     private String[] subfolders;
 
     public GithubMetaHandler(String repoOwner, String repoName, String branch) {
-        super(String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
+        super("loader", String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
     }
 
     public GithubMetaHandler(String repoOwner, String repoName, String branch, String[] subfolders) {
-        super(String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
+        super("loader", String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
         this.subfolders = subfolders;
     }
 
     @Override
     public void load() throws IOException {
-        JsonNode gitTreeNode = LeafService.queryJsonSubstitutedMaven(this.metaPath).path("tree");
+        JsonNode gitTreeNode = LeafService.queryJsonSubstitutedMaven(getMetaPath()).path("tree");
 
         // Resolve the subfolder tree if required, used to get files in loader/ folder.
         if (this.subfolders != null) {
@@ -70,16 +70,16 @@ public class GithubMetaHandler extends MetaHandler {
             }
         }
 
-        List<ComponentVersion> temp;
+        List<GameVersion> temp;
         final var versionsJson = Main.OBJECT_MAPPER.treeToValue(gitTreeNode,
             new TypeReference<List<GitTreeObject>>() {});
 
         temp = versionsJson.stream()
-            .map(ComponentVersion::new)
+            .map(GameVersion::new)
             .sorted((v1, v2) -> v2.id.compareToIgnoreCase(v1.id))
             .collect(Collectors.toList());
-        this.versions = temp;
+        setVersions(temp);
 
-        complete(this.versions);
+        complete(getVersions());
     }
 }

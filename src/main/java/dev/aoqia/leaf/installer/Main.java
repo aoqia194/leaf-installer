@@ -62,7 +62,7 @@ public class Main {
             LeafService.setFixed(metaUrl, mavenUrl);
         }
 
-        GAME_VERSION_META = new MetaHandler("dist/manifests/index.json");
+        GAME_VERSION_META = new MetaHandler("game", "dist/manifests/index.json");
         LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
 
         // Default to the help command in a headless environment

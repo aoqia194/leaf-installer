@@ -16,10 +16,8 @@
 package dev.aoqia.leaf.installer;
 
 import javax.swing.*;
-import javax.xml.stream.XMLStreamException;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -37,7 +35,8 @@ public class InstallerGui extends JFrame {
         setContentPane(contentPane);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        Image iconImage = Toolkit.getDefaultToolkit()
+        Image iconImage = Toolkit
+            .getDefaultToolkit()
             .getImage(ClassLoader.getSystemClassLoader().getResource("icon.png"));
         setIconImage(iconImage);
         setTaskBarImage(iconImage);
@@ -59,8 +58,8 @@ public class InstallerGui extends JFrame {
         }
     }
 
-    public static void start() throws IOException, ClassNotFoundException, UnsupportedLookAndFeelException,
-        InstantiationException, IllegalAccessException, XMLStreamException {
+    public static void start() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException,
+        IllegalAccessException {
         //This will make people happy
         String lafCls = UIManager.getSystemLookAndFeelClassName();
         UIManager.setLookAndFeel(lafCls);

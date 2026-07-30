@@ -81,22 +81,22 @@ public class Utils {
             .resolve("Project Zomboid Dedicated Server");
     }
 
-    public static String getClientGamePath() {
+    public static Path getClientGamePath() {
         var path = System.getenv("LEAF_CLIENT_GAME_PATH");
         if (path != null) {
-            return path;
+            return Path.of(path);
         }
 
-        return getDefaultClientGamePath().toString();
+        return getDefaultClientGamePath();
     }
 
-    public static String getServerGamePath() {
+    public static Path getServerGamePath() {
         var path = System.getenv("LEAF_SERVER_GAME_PATH");
         if (path != null) {
-            return path;
+            return Path.of(path);
         }
 
-        return getDefaultServerGamePath().toString();
+        return getDefaultServerGamePath();
     }
 
     public static String readString(Path path) throws IOException {

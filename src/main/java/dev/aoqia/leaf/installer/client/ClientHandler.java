@@ -84,7 +84,7 @@ public class ClientHandler extends Handler {
 
     @Override
     public void installCli(ArgumentParser args) throws Exception {
-        Path path = Paths.get(args.getOrDefault("dir", Utils::getClientGamePath));
+        Path path = Paths.get(args.getOrDefault("dir", () -> Utils.getClientGamePath().toString()));
         if (!Files.exists(path)) {
             throw new FileNotFoundException("Game directory not found at " + path);
         }
@@ -105,9 +105,9 @@ public class ClientHandler extends Handler {
 
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
-        addRow(pane, c, null,
-            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), false));
-        installLocation.setText(Utils.getClientGamePath());
+//        addRow(pane, c, null,
+//            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), false));
+        installLocation.setText(Utils.getClientGamePath().toString());
     }
 
     private void showInstalledMessage(String loaderVersion, String gameVersion,

@@ -21,42 +21,43 @@ import org.junit.Test;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 
 public class ArgumentTests {
-	@Test
-	public void test() {
-		String[] args = new String[]{"command", "-debug", "-cachedir=C:\\SomePath\\SomeFolder", "-novoip"};
-		ArgumentParser handler = ArgumentParser.create(args);
+    @Test
+    public void test() {
+        String[] args = new String[] { "command", "-debug", "-cachedir=C:\\SomePath\\SomeFolder", "-novoip" };
+        ArgumentParser handler = ArgumentParser.create(args);
 
-		Assert.assertTrue(handler.has("debug"));
-		Assert.assertEquals("C:\\SomePath\\SomeFolder", handler.get("cachedir"));
+        Assert.assertTrue(handler.has("debug"));
+        Assert.assertEquals("C:\\SomePath\\SomeFolder", handler.get("cachedir"));
 
-		Assert.assertEquals("World", handler.getOrDefault("arg3", () -> "World"));
+        Assert.assertEquals("World", handler.getOrDefault("arg3", () -> "World"));
 
-		Assert.assertTrue(handler.has("novoip"));
-		Assert.assertFalse(handler.has("aitest"));
+        Assert.assertTrue(handler.has("novoip"));
+        Assert.assertFalse(handler.has("aitest"));
 
-		Assert.assertEquals("command", handler.getCommand().get());
-	}
+        Assert.assertEquals("command", handler.getCommand().get());
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testBadArgs() {
-		ArgumentParser.create(new String[]{"-arg1=Hello", "-arg1"});
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadArgs() {
+        ArgumentParser.create(new String[] { "-arg1=Hello", "-arg1" });
+    }
 
-	@Test
-	public void testUnknownArg() {
-		Assert.assertNull(ArgumentParser.create(new String[]{"-arg1=Hello"}).get("arg2"));
-	}
+    @Test
+    public void testUnknownArg() {
+        Assert.assertNull(ArgumentParser.create(new String[] { "-arg1=Hello" }).get("arg2"));
+    }
 
-	@Test
-	public void testNullArg() {
-		Assert.assertNull(ArgumentParser.create(new String[]{"-arg1"}).get("arg1"));
-	}
+    @Test
+    public void testNullArg() {
+        Assert.assertNull(ArgumentParser.create(new String[] { "-arg1" }).get("arg1"));
+    }
 
-	@Test
-	public void testCommands() {
-		Assert.assertTrue(ArgumentParser.create(new String[]{"command", "-arg1=Hello"}).getCommand().isPresent());
-		Assert.assertEquals(ArgumentParser.create(new String[]{"command", "-arg1=Hello"}).getCommand().get(), "command");
+    @Test
+    public void testCommands() {
+        Assert.assertTrue(ArgumentParser.create(new String[] { "command", "-arg1=Hello" }).getCommand().isPresent());
+        Assert.assertEquals(ArgumentParser.create(new String[] { "command", "-arg1=Hello" }).getCommand().get(),
+            "command");
 
-		Assert.assertFalse(ArgumentParser.create(new String[]{"-arg1=Hello"}).getCommand().isPresent());
-	}
+        Assert.assertFalse(ArgumentParser.create(new String[] { "-arg1=Hello" }).getCommand().isPresent());
+    }
 }
