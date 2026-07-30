@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 import java.util.HashMap;
 import java.util.Map;

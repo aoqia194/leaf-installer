@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.util;
+package dev.aoqia.leaf.installer.util;
 
 public class Reference {
 	public static final String LOADER_NAME = "fabric-loader";
