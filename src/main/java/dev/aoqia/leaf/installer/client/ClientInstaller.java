@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.client;
+package dev.aoqia.leaf.installer.client;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,12 +24,12 @@ import java.text.MessageFormat;
 
 import mjson.Json;
 
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.FabricService;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Library;
-import net.fabricmc.installer.util.Reference;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.Library;
+import dev.aoqia.leaf.installer.util.Reference;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public class ClientInstaller {
 	public static String install(Path mcDir, String gameVersion, LoaderVersion loaderVersion, InstallerProgress progress) throws IOException {

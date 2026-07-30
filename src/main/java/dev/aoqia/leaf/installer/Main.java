@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer;
+package dev.aoqia.leaf.installer;
 
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.installer.client.ClientHandler;
-import net.fabricmc.installer.server.ServerHandler;
-import net.fabricmc.installer.util.ArgumentParser;
-import net.fabricmc.installer.util.CrashDialog;
-import net.fabricmc.installer.util.FabricService;
-import net.fabricmc.installer.util.MetaHandler;
-import net.fabricmc.installer.util.OperatingSystem;
+import dev.aoqia.leaf.installer.client.ClientHandler;
+import dev.aoqia.leaf.installer.server.ServerHandler;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.CrashDialog;
+import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.MetaHandler;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
 
 public class Main {
 	public static MetaHandler GAME_VERSION_META;

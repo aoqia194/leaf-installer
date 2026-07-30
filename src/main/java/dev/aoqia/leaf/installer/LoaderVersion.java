@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer;
+package dev.aoqia.leaf.installer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import java.util.zip.ZipFile;
 
 import mjson.Json;
 
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public final class LoaderVersion {
 	public final String name;

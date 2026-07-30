@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.client;
+package dev.aoqia.leaf.installer.client;
 
 import java.awt.Color;
 import java.awt.Desktop;
@@ -37,15 +37,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 
-import net.fabricmc.installer.Handler;
-import net.fabricmc.installer.InstallerGui;
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.launcher.MojangLauncherHelperWrapper;
-import net.fabricmc.installer.util.ArgumentParser;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.NoopCaret;
-import net.fabricmc.installer.util.Reference;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.Handler;
+import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.launcher.MojangLauncherHelperWrapper;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.NoopCaret;
+import dev.aoqia.leaf.installer.util.Reference;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public class ClientHandler extends Handler {
 	private JCheckBox createProfile;

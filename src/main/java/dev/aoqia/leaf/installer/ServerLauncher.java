@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer;
+package dev.aoqia.leaf.installer;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,10 +38,10 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
 
-import net.fabricmc.installer.server.MinecraftServerDownloader;
-import net.fabricmc.installer.server.ServerInstaller;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.server.MinecraftServerDownloader;
+import dev.aoqia.leaf.installer.server.ServerInstaller;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public final class ServerLauncher {
 	private static final String INSTALL_CONFIG_NAME = "install.properties";

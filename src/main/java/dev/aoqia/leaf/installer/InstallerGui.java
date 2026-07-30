@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer;
+package dev.aoqia.leaf.installer;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,7 +35,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.xml.stream.XMLStreamException;
 
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.Utils;
 
 @SuppressWarnings("serial")
 public class InstallerGui extends JFrame {

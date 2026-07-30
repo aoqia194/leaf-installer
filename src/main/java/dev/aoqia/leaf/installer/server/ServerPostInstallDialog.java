@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.server;
+package dev.aoqia.leaf.installer.server;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -56,9 +56,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import mjson.Json;
 
-import net.fabricmc.installer.InstallerGui;
-import net.fabricmc.installer.util.LauncherMeta;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.util.LauncherMeta;
+import dev.aoqia.leaf.installer.util.Utils;
 
 @SuppressWarnings("serial")
 public class ServerPostInstallDialog extends JDialog {

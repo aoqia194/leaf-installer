@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.server;
+package dev.aoqia.leaf.installer.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -49,11 +49,11 @@ import java.util.zip.ZipOutputStream;
 
 import mjson.Json;
 
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.FabricService;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Library;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.util.FabricService;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.Library;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public class ServerInstaller {
 	private static final String servicesDir = "META-INF/services/";

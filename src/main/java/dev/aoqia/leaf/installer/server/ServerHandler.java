@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer.server;
+package dev.aoqia.leaf.installer.server;
 
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -33,13 +33,13 @@ import java.text.MessageFormat;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.fabricmc.installer.Handler;
-import net.fabricmc.installer.InstallerGui;
-import net.fabricmc.installer.LoaderVersion;
-import net.fabricmc.installer.util.ArgumentParser;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.Reference;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.Handler;
+import dev.aoqia.leaf.installer.InstallerGui;
+import dev.aoqia.leaf.installer.LoaderVersion;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.Reference;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public class ServerHandler extends Handler {
 	@Override

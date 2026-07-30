@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.installer;
+package dev.aoqia.leaf.installer;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -45,11 +45,11 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.fabricmc.installer.util.ArgumentParser;
-import net.fabricmc.installer.util.InstallerProgress;
-import net.fabricmc.installer.util.MetaHandler;
-import net.fabricmc.installer.util.MetaHandler.GameVersion;
-import net.fabricmc.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.MetaHandler;
+import dev.aoqia.leaf.installer.util.MetaHandler.GameVersion;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public abstract class Handler implements InstallerProgress {
 	protected static final int HORIZONTAL_SPACING = 4;
