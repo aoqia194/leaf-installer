@@ -1,0 +1,29 @@
+[changelog]
+header = "## Release Notes\n\n"
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}*({{ commit.scope }})* {% endif %}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}](https://github.com/{{ github.repository }}/commit/{{ commit.id }}))
+{% endfor %}
+{% endfor %}
+"""
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+
+commit_parsers = [
+    # Skip slop
+    { author = "dependabot\\[bot\\]", skip = true },
+    { author = "github-copilot\\[bot\\]", skip = true },
+    { author = "copilot-sweeper\\[bot\\]", skip = true },
+
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^perf", group = "Performance Improvements" },
+    { message = "^refactor", group = "Maintenance" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^chore", group = "Chores" },
+    { message = ".*", group = "Other Commits" },
+]

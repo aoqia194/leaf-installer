@@ -3,7 +3,6 @@ commons-collections = "4.5.0"
 download = "5.7.0"
 dsljson = "2.0.2"
 flatlaf = "3.7.2"
-jreleaser = "1.25.0"
 junit = "4.13.2"
 shadow = "9.6.1"
 spotless = "8.9.0"
@@ -16,6 +15,5 @@ junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]
 download = { id = "de.undercouch.download", version.ref = "download" }
-jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

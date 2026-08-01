@@ -1,18 +1,10 @@
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.slurpersupport.NodeChildren
-import org.gradle.kotlin.dsl.jreleaser
-import org.jreleaser.model.Active
-import org.jreleaser.model.Http
 import java.net.URL
 
-val env = System.getenv()!!
-val isCiEnv = env["CI"].toBoolean()
-val gpgKeyPassphrase = env["GPG_PASSPHRASE_KEY"]
-val gpgKeyPublic = env["GPG_PUBLIC_KEY"]
-val gpgKeyPrivate = env["GPG_PRIVATE_KEY"]
-val mavenUsername = env["MAVEN_USERNAME"]
-val mavenPassword = env["MAVEN_PASSWORD"]
+val isCiBuild = providers.environmentVariable("CI").map { it.toBoolean() }.orElse(false).get()
+val isSnapshot = providers.gradleProperty("isSnapshot").map { it.toBoolean() }.orElse(false).get()
 
 plugins {
     java
@@ -20,13 +12,13 @@ plugins {
     alias(libs.plugins.spotless)
     alias(libs.plugins.shadow)
     alias(libs.plugins.download)
-    // Publishing to Maven Central
+
     `maven-publish`
-    alias(libs.plugins.jreleaser)
+    signing
 }
 
 allprojects {
-    if (!isCiEnv) {
+    if (!isCiBuild) {
         version = "${version}.local"
     }
 }
@@ -54,12 +46,21 @@ base {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
-    withJavadocJar()
+//    withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release = 17
+}
+
+// Workaround for https://youtrack.jetbrains.com/issue/KT-46466
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    dependsOn(tasks.withType<Sign>())
+}
+
+tasks.withType<Sign>().configureEach {
+    enabled = isCiBuild && !isSnapshot
 }
 
 tasks {
@@ -77,7 +78,7 @@ tasks {
                 mapOf(
                     "Implementation-Title" to "LeafInstaller",
                     "Implementation-Version" to project.version,
-                    "Main-Class" to "${project.group}.installer.Main"
+                    "Main-Class" to "${project.group}.${project.name}.Main"
                 )
             )
         }
@@ -127,6 +128,12 @@ publishing {
             artifactId = project.name
             version = project.version.toString()
 
+            artifact(tasks.named("shadowJar")) {
+                classifier = null
+            }
+            artifact(tasks.named("sourcesJar"))
+//        artifact(tasks.named("javadocJar"))
+
             pom {
                 name = rootProject.name
                 group = rootProject.group
@@ -156,104 +163,34 @@ publishing {
                     url = property("url").toString()
                 }
             }
-
-            artifact(tasks.named("shadowJar")) {
-                classifier = null
-            }
-            artifact(tasks.named("sourcesJar"))
-            artifact(tasks.named("javadocJar"))
         }
     }
+
     repositories {
         maven {
-            url = uri(layout.buildDirectory.dir("staging-deploy"))
+            name = "leaf"
+            url = uri("https://maven.aoqia.dev/${if (isSnapshot) "snapshots" else "releases"}")
+
+            credentials {
+                username = providers.gradleProperty("mavenUsername").orNull
+                password = providers.gradleProperty("mavenPassword").orNull
+            }
+
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
         }
     }
 }
 
-jreleaser {
-    project {
-        name = rootProject.name
-        version = rootProject.version.toString()
-        versionPattern = "SEMVER"
-        authors = listOf("aoqia194", "FabricMC")
-        maintainers = listOf("aoqia194")
-        license = "MIT"
-        inceptionYear = "2025"
+signing {
+    isRequired = isCiBuild and !isSnapshot
 
-        links {
-            homepage = property("url").toString()
-            license = "https://spdx.org/licenses/MIT.html"
-        }
+    val signingKey = providers.gradleProperty("signingKey")
+    val signingPassword = providers.gradleProperty("signingPassword")
+    if (signingKey.isPresent && signingPassword.isPresent) {
+        useInMemoryPgpKeys(signingKey.get(), signingPassword.get())
     }
 
-    files {
-        active = Active.ALWAYS
-
-        artifact {
-            path = tasks.shadowJar.get().archiveFile.get()
-        }
-    }
-
-    signing {
-        active = Active.ALWAYS
-
-        pgp {
-            active = Active.ALWAYS
-            armored = true
-            passphrase = gpgKeyPassphrase
-            publicKey = gpgKeyPublic
-            secretKey = gpgKeyPrivate
-        }
-    }
-
-    deploy {
-        maven {
-            pomchecker {
-                version = "1.15.0"
-                failOnWarning = false // annoying
-                failOnError = true
-                strict = true
-            }
-
-            mavenCentral {
-                create("sonatype") {
-                    applyMavenCentralRules = true
-                    active = Active.RELEASE
-                    snapshotSupported = true
-                    authorization = Http.Authorization.BASIC
-                    username = mavenUsername
-                    password = mavenPassword
-                    url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository("build/staging-deploy")
-                    verifyUrl = "https://repo1.maven.org/maven2/{{path}}/{{filename}}"
-                    namespace = rootProject.group.toString()
-                    retryDelay = 60
-                    maxRetries = 30
-                }
-            }
-        }
-    }
-
-    release {
-        github {
-            enabled = true
-            repoOwner = "aoqia194"
-            name = "leaf-${rootProject.name}"
-            host = "github.com"
-            releaseName = "{{tagName}}"
-
-            sign = true
-            overwrite = true
-            uploadAssets = Active.ALWAYS
-            artifacts = true
-            checksums = true
-            signatures = true
-
-            changelog {
-                formatted = Active.ALWAYS
-                preset = "conventional-commits"
-            }
-        }
-    }
+    sign(publishing.publications)
 }

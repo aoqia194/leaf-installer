@@ -16,7 +16,6 @@
 package dev.aoqia.leaf.installer;
 
 import java.awt.GraphicsEnvironment;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

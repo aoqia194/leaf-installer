@@ -5,6 +5,7 @@
 !/gradle
 !/src
 
+!/.cliff.toml
 !/.gitignore
 !/build.gradle.kts
 !/checkstyle.xml
