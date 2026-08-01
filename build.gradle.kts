@@ -6,6 +6,9 @@ import java.net.URL
 val isCiBuild = providers.environmentVariable("CI").map { it.toBoolean() }.orElse(false).get()
 val isSnapshot = providers.gradleProperty("isSnapshot").map { it.toBoolean() }.orElse(false).get()
 
+val baseVersion = project.version.toString()
+project.version = if (isSnapshot) "$baseVersion-SNAPSHOT" else if (!isCiBuild) "$baseVersion.local" else baseVersion
+
 plugins {
     java
 
@@ -15,12 +18,6 @@ plugins {
 
     `maven-publish`
     signing
-}
-
-allprojects {
-    if (!isCiBuild) {
-        version = "${version}.local"
-    }
 }
 
 repositories {
