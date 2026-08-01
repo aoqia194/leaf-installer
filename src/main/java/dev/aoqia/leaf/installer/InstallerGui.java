@@ -15,15 +15,20 @@
  */
 package dev.aoqia.leaf.installer;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+import javax.swing.WindowConstants;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 import dev.aoqia.leaf.installer.util.Utils;
 
@@ -61,7 +66,7 @@ public class InstallerGui extends JFrame {
     }
 
     public static void start() {
-        FlatLightLaf.setup();
+        FlatMacDarkLaf.setup();
         InstallerGui dialog = new InstallerGui();
         dialog.updateSize(true);
         dialog.setTitle(Utils.BUNDLE.getString("installer.title"));
