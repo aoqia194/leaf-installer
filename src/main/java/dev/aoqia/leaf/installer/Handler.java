@@ -60,7 +60,6 @@ public abstract class Handler implements InstallerProgress {
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
 
     public JButton buttonInstall;
-    public JButton buttonInstallManual;
 
     public JComboBox<String> gameVersionComboBox;
     public JTextField installLocation;
@@ -122,11 +121,14 @@ public abstract class Handler implements InstallerProgress {
         GAME_VERSION_META.onComplete(this::updateGameVersions);
 
         loaderVersionComboBox = new JComboBox<>();
+        loaderVersionComboBox.setEnabled(false);
 
         loaderProxyCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.use.proxy"));
+        loaderProxyCheckbox.setToolTipText(Utils.BUNDLE.getString("tooltip.use.proxy"));
         loaderProxyCheckbox.setSelected(true);
         loaderProxyCheckbox.addActionListener(e -> {
-            if (Main.LOADER_META.isComplete()) {
+            loaderVersionComboBox.setEnabled(!loaderProxyCheckbox.isSelected());
+            if (!loaderProxyCheckbox.isSelected() && Main.LOADER_META.isComplete()) {
                 updateLoaderVersions(Main.LOADER_META.getVersions());
             }
         });
@@ -148,20 +150,17 @@ public abstract class Handler implements InstallerProgress {
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
         buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install"));
-        buttonInstall.setToolTipText(Utils.BUNDLE.getString("tooltip.install"));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
-            install();
+
+            if (loaderProxyCheckbox.isSelected()) {
+                install();
+            } else {
+                installManual();
+            }
         });
 
-        buttonInstallManual = new JButton(Utils.BUNDLE.getString("prompt.install.manual"));
-        buttonInstallManual.setToolTipText(Utils.BUNDLE.getString("tooltip.install.manual"));
-        buttonInstallManual.addActionListener(e -> {
-            buttonInstallManual.setEnabled(false);
-            installManual();
-        });
-
-        addLastRow(pane, c, null, buttonInstall, buttonInstallManual);
+        addLastRow(pane, c, null, buttonInstall);
 
         installerGui.updateSize(true);
 
