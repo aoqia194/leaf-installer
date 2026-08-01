@@ -15,6 +15,7 @@
  */
 package dev.aoqia.leaf.installer.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,7 +23,6 @@ import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
@@ -34,6 +34,8 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static dev.aoqia.leaf.installer.Main.JSON;
 
 public class Utils {
     public static final String LEAF_FOLDER = ".leaf";
@@ -260,5 +262,18 @@ public class Utils {
         }
 
         return Integer.compare(partsA.length, partsB.length); // compare part count
+    }
+
+    public static <T> T deserializeJson(byte[] byteStr, Class<T> clazz) throws IOException {
+        ByteArrayInputStream is = new ByteArrayInputStream(byteStr);
+        return JSON.deserialize(clazz, is);
+    }
+
+    public static <T> T deserializeJson(InputStream is, Class<T> clazz) throws IOException {
+        return JSON.deserialize(clazz, is);
+    }
+
+    public static <T> T deserializeJson(String str, Class<T> clazz) throws IOException {
+        return deserializeJson(str.getBytes(), clazz);
     }
 }

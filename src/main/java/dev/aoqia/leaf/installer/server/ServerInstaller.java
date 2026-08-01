@@ -18,24 +18,20 @@ package dev.aoqia.leaf.installer.server;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.collections4.iterators.IteratorChain;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.LaunchConfigUtil;
 import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.Library;
 import dev.aoqia.leaf.installer.util.Reference;
 import dev.aoqia.leaf.installer.util.Utils;
+import dev.aoqia.leaf.installer.util.json.LoaderJson;
 
 public class ServerInstaller {
     private final Path gameDir;
@@ -61,54 +57,45 @@ public class ServerInstaller {
 
         final var configName = String.format("leaf-%s-%s", loaderVersion.name, gameVersion);
 
-        JsonNode loaderVersionJson;
+        LoaderJson loaderVersionJson;
         if (loaderVersion.path == null) {
             // Loader jar isn't custom, fetch json from GitHub.
-            loaderVersionJson = LeafService.queryMetaJson("loader/%s.json".formatted(loaderVersion.name));
+            loaderVersionJson = LeafService.queryMetaJson("loader/%s.json".formatted(loaderVersion.name),
+                LoaderJson.class);
         } else {
             // Loader jar is locally available, fetch json from Jar.
             // Do this to prevent large GitHub traffic for dedicated servers.
             try (ZipFile zf = new ZipFile(loaderVersion.path.toFile())) {
                 ZipEntry entry = zf.getEntry("leaf-installer.json");
-                loaderVersionJson = Main.OBJECT_MAPPER.readTree(Utils.readString(zf.getInputStream(entry)));
+                loaderVersionJson = Utils.deserializeJson(zf.getInputStream(entry), LoaderJson.class);
             }
         }
 
-        final var libsJson = loaderVersionJson.path("libraries");
-        final var mainClass = loaderVersionJson.path("mainClass").path("server").asString();
-        final var mainClassInternal = mainClass.replace(".", "/");
+        LoaderJson.Libraries libsJson = loaderVersionJson.libraries();
+        String mainClass = loaderVersionJson.mainClass().server();
+        String mainClassInternal = mainClass.replace(".", "/");
         Files.createDirectories(libsDir);
 
         // Putting the loader itself into the libs list to download/copy later.
-        final var obj = JsonNodeFactory.instance.objectNode();
-        obj.put("name", "dev.aoqia.leaf:loader:" + loaderVersion.name);
-        if (loaderVersion.path == null) {
-            obj.put("url", Reference.DEFAULT_MAVEN_SERVER);
-        } else {
-            obj.put("path", loaderVersion.path.toUri().toString());
-        }
-        ((ArrayNode) libsJson.path("common")).add(obj);
+        libsJson
+            .common()
+            .add(new LoaderJson.Library("dev.aoqia.leaf:loader:" + loaderVersion.name,
+                loaderVersion.path != null ? loaderVersion.path.toUri().toString() : Reference.DEFAULT_MAVEN_SERVER,
+                null, null, null, null, null));
 
-        final var libs = new IteratorChain<>(libsJson.path("common").iterator(), libsJson.path("server").iterator());
+        final var libs = new IteratorChain<>(libsJson.common().iterator(), libsJson.server().iterator());
         libs.forEachRemaining(json -> {
             Library library = new Library(json);
             Path libraryFile = libsDir.resolve("%s-%s.jar".formatted(library.artifactId, library.version));
 
-            final var task = library.inputPath == null ? "copy" : "download";
-
             progress.updateProgress(
-                new MessageFormat(Utils.BUNDLE.getString("progress.%s.library.entry".formatted(task))).format(
+                new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(
                     new Object[] { library.dependency }));
 
             try {
-                if (library.inputPath == null) {
-                    LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
-                } else {
-                    Files.createDirectories(libraryFile.getParent());
-                    Files.copy(library.inputPath, libraryFile, StandardCopyOption.REPLACE_EXISTING);
-                }
+                LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to %s library %s".formatted(task, library.artifactId), e);
+                throw new RuntimeException("Failed to download library %s".formatted(library.artifactId), e);
             }
         });
 

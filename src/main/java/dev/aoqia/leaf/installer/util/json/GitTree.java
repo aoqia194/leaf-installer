@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.leaf.installer.util;
+package dev.aoqia.leaf.installer.util.json;
 
-import java.io.IOException;
-import java.util.List;
+import com.dslplatform.json.CompiledJson;
 
-public abstract class MetaHandler<T> extends CompletableHandler<List<T>> {
-    private final String name;
-    private final String metaPath;
-
-    public MetaHandler(String name, String metaPath) {
-        this.name = name;
-        this.metaPath = metaPath;
-    }
-
-    public abstract void load() throws IOException;
-    public abstract T parseVersion(String value, boolean snapshot);
-
-    public String getName() {
-        return name;
-    }
-
-    public String getMetaPath() {
-        return metaPath;
-    }
+@CompiledJson
+public record GitTree(String sha, String url, GitTreeObject[] tree) {
+    @CompiledJson
+    public record GitTreeObject(String path, String mode, String type, String sha, String url, int size) {}
 }

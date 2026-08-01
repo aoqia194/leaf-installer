@@ -60,6 +60,12 @@ public class ServerHandler extends Handler {
     }
 
     @Override
+    public void installManual() {
+        // TODO: Implement.
+        throw new RuntimeException();
+    }
+
+    @Override
     public void installCli(ArgumentParser args) throws Exception {
         final var os = OperatingSystem.CURRENT.toShortString();
         Path dir = Paths.get(args.getOrDefault("dir", () -> ".")).toAbsolutePath().normalize();

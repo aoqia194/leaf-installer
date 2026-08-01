@@ -15,9 +15,9 @@
  */
 package dev.aoqia.leaf.installer.util.json;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.dslplatform.json.CompiledJson;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@CompiledJson
 public class GameManifestVersion {
     public String id;
 }

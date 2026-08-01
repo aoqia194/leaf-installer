@@ -15,10 +15,22 @@
  */
 package dev.aoqia.leaf.installer.util.json;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class VersionTableVersions {
-    // Can be Map<String, Object> or List<Object>
-    public Object versions;
+import com.dslplatform.json.CompiledJson;
+
+@CompiledJson
+public record LoaderJson(Libraries libraries, MainClass mainClass) {
+    @CompiledJson
+    public record Libraries(
+        List<Library> client,
+        List<Library> common,
+        List<Library> server,
+        List<Library> development) {}
+
+    @CompiledJson
+    public record Library(String name, String url, String md5, String sha1, String sha256, String sha512, Long size) {}
+
+    @CompiledJson
+    public record MainClass(String client, String server) {}
 }

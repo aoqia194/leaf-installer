@@ -16,22 +16,19 @@
 package dev.aoqia.leaf.installer.util;
 
 import java.io.File;
-import java.nio.file.Path;
 
-import tools.jackson.databind.JsonNode;
+import dev.aoqia.leaf.installer.util.json.LoaderJson;
 
 public class Library {
     public final String dependency;
     public final String url;
-    public final Path inputPath;
     public String groupId;
     public String artifactId;
     public String version;
 
-    public Library(String dependency, String url, Path inputPath) {
+    public Library(String dependency, String url) {
         this.dependency = dependency;
         this.url = url;
-        this.inputPath = inputPath;
 
         final var parts = dependency.split(":", 3);
         this.groupId = parts[0];
@@ -39,15 +36,9 @@ public class Library {
         this.version = parts[2];
     }
 
-    public Library(JsonNode json) {
-        this.dependency = json.path("name").asString();
-        this.url = json.path("url").asString();
-
-        if (!json.path("path").isMissingNode()) {
-            this.inputPath = Path.of(json.path("path").asString());
-        } else {
-            this.inputPath = null;
-        }
+    public Library(LoaderJson.Library library) {
+        this.dependency = library.name();
+        this.url = library.url();
 
         final var parts = this.dependency.split(":", 3);
         this.groupId = parts[0];
@@ -61,7 +52,8 @@ public class Library {
     }
 
     public String getPath() {
-        return "%s/%s/%s/%s-%s.jar".formatted(groupId.replace(".", "/"), artifactId, version, artifactId, version)
+        return "%s/%s/%s/%s-%s.jar"
+            .formatted(groupId.replace(".", "/"), artifactId, version, artifactId, version)
             .replace(" ", "_")
             .replaceAll("/", File.separator);
     }

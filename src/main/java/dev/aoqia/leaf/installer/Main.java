@@ -15,28 +15,31 @@
  */
 package dev.aoqia.leaf.installer;
 
-import java.awt.*;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import tools.jackson.databind.ObjectMapper;
+import com.dslplatform.json.DslJson;
+import com.dslplatform.json.runtime.Settings;
 
 import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.server.ServerHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.CrashDialog;
+import dev.aoqia.leaf.installer.util.GameMetaHandler;
 import dev.aoqia.leaf.installer.util.GithubMetaHandler;
 import dev.aoqia.leaf.installer.util.LeafService;
-import dev.aoqia.leaf.installer.util.MetaHandler;
 import dev.aoqia.leaf.installer.util.OperatingSystem;
+import dev.aoqia.leaf.installer.util.Reference;
 
 public class Main {
     public static final List<Handler> HANDLERS = new ArrayList<>();
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final DslJson<Object> JSON = new DslJson<>(Settings.withRuntime().includeServiceLoader());
 
-    public static MetaHandler GAME_VERSION_META;
+    public static GameMetaHandler GAME_VERSION_META;
     public static GithubMetaHandler LOADER_META;
+    public static GithubMetaHandler LOADER_PROXY_META;
 
     public static void main(String[] args) throws IOException {
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
@@ -56,14 +59,15 @@ public class Main {
 
         // Can be used if you wish to re-host or provide custom versions.
         // Ensure you include the trailing /
-        String metaUrl =  argumentParser.get("metaurl");
-        String mavenUrl =  argumentParser.get("mavenurl");
+        String metaUrl = argumentParser.get("metaurl");
+        String mavenUrl = argumentParser.get("mavenurl");
         if (metaUrl != null || mavenUrl != null) {
             LeafService.setFixed(metaUrl, mavenUrl);
         }
 
-        GAME_VERSION_META = new MetaHandler("game", "dist/manifests/index.json");
+        GAME_VERSION_META = new GameMetaHandler("game", Reference.ZOMBOID_VERSION_MANIFEST);
         LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
+        LOADER_PROXY_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader-proxy" });
 
         // Default to the help command in a headless environment
         if (GraphicsEnvironment.isHeadless() && command == null) {
@@ -84,7 +88,7 @@ public class Main {
 
             System.out.printf("\nLatest Version: %s\nLatest Loader: %s\n",
                 GAME_VERSION_META.getLatestVersion(argumentParser.has("unstable")).id(),
-                LOADER_META.getLatestVersion(false).id());
+                LOADER_META.getLatestVersion().id());
         } else {
             loadMetadata();
 

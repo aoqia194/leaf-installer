@@ -23,6 +23,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
+import com.dslplatform.json.CompiledJson;
+
 import dev.aoqia.leaf.installer.util.Utils;
 
 public final class LoaderVersion {
@@ -47,11 +49,14 @@ public final class LoaderVersion {
                 modJsonContent = Utils.readString(is);
             }
 
-            this.name = Main.OBJECT_MAPPER.readTree(modJsonContent).get("version").asText();
+            this.name = Utils.deserializeJson(modJsonContent, ModJson.class).version();
         } catch (ZipError e) {
             throw new IOException(e);
         }
 
         this.path = path;
     }
+
+    @CompiledJson
+    private record ModJson(String version) {}
 }

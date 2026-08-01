@@ -15,10 +15,20 @@
  */
 package dev.aoqia.leaf.installer.util.json;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GitTreeObject {
-    public String path, mode, type, sha, url;
-    public int size;
+import com.dslplatform.json.CompiledJson;
+
+@CompiledJson
+public record VersionTable(Object versions) {
+    @SuppressWarnings("unchecked")
+    public <T> Map<String, T> getVersionsAsMap() {
+        return (Map<String, T>) versions;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getVersionsAsList() {
+        return (List<T>) versions;
+    }
 }

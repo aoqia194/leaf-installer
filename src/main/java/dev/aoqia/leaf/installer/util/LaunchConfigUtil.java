@@ -19,14 +19,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-
 import dev.aoqia.leaf.installer.Main;
+import dev.aoqia.leaf.installer.util.json.LauncherConfig;
 
 public class LaunchConfigUtil {
     private static final String ORIGINAL_CONFIG_NAME = "ProjectZomboid64.json";
@@ -61,30 +59,19 @@ public class LaunchConfigUtil {
             throw new RuntimeException("Failed to copy bootstrapper config: ", e);
         }
 
-        JsonNode newConfigJson;
+        LauncherConfig newConfigJson;
         try {
-            newConfigJson = Main.OBJECT_MAPPER.readTree(Files.readString(newConfig));
+            newConfigJson = Utils.deserializeJson(Files.readString(newConfig), LauncherConfig.class);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read bootstrapper config: ", e);
         }
-        ((ObjectNode) newConfigJson).put("mainClass", mainClass);
 
-        // Always remove these stupid JVM properties that shouldn't exist.
-        final var vmArgs = (ArrayNode) newConfigJson.path("vmArgs");
-        assert vmArgs.isArray();
-        for (int i = 0; i < vmArgs.size(); ++i) {
-            final var node = vmArgs.get(i);
-            if (node.asString().startsWith("-Xms") || node.asString().startsWith("-Xmx")
-                // node.asText().equals("-Djava.awt.headless=true")
-            ) {
-                vmArgs.remove(i--);
-            }
-        }
+        newConfigJson.setMainClass(mainClass);
 
         // Add our loader's libraries to the classpath.
         // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
-        final var classpath = (ArrayNode) newConfigJson.path("classpath");
-        try (final Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
+        final List<String> classpath = newConfigJson.getClasspath();
+        try (Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
             stream.forEach(path -> classpath.add(this.gameDir.relativize(path).toString()));
         }
 

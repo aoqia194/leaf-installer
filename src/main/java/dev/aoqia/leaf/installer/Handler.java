@@ -15,21 +15,43 @@
  */
 package dev.aoqia.leaf.installer;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Locale;
 
 import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.GameMetaHandler;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
-import dev.aoqia.leaf.installer.util.MetaHandler;
-import dev.aoqia.leaf.installer.util.MetaHandler.GameVersion;
+import dev.aoqia.leaf.installer.util.LoaderMetaHandler;
 import dev.aoqia.leaf.installer.util.Utils;
+
+import static dev.aoqia.leaf.installer.Main.GAME_VERSION_META;
+import static dev.aoqia.leaf.installer.Main.LOADER_META;
 
 public abstract class Handler implements InstallerProgress {
     protected static final int HORIZONTAL_SPACING = 4;
@@ -38,12 +60,14 @@ public abstract class Handler implements InstallerProgress {
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
 
     public JButton buttonInstall;
+    public JButton buttonInstallManual;
 
     public JComboBox<String> gameVersionComboBox;
     public JTextField installLocation;
     public JButton selectFolderButton;
     public JLabel statusLabel;
     public JCheckBox unstableCheckbox;
+    public JCheckBox loaderProxyCheckbox;
     private JComboBox<String> loaderVersionComboBox;
     private JPanel pane;
 
@@ -51,18 +75,17 @@ public abstract class Handler implements InstallerProgress {
         return Box.createRigidArea(new Dimension(4, 0));
     }
 
-    private static String getVersion(String name, boolean snapshot, MetaHandler meta) {
-        GameVersion ret = meta.parseVersion(name, snapshot);
-        if (ret == null) {
-            throw new IllegalArgumentException(String.format("unknown %s version: %s", meta.getName(), name));
-        }
-
-        return ret.id();
-    }
-
     public abstract String name();
 
+    /**
+     * Installs the proxy loader.
+     */
     public abstract void install();
+
+    /**
+     * Installs the loader itself.
+     */
+    public abstract void installManual();
 
     public abstract void installCli(ArgumentParser args) throws Exception;
 
@@ -85,18 +108,31 @@ public abstract class Handler implements InstallerProgress {
 
         setupPane1(pane, c, installerGui);
 
-        addRow(pane, c, "prompt.game.version", gameVersionComboBox = new JComboBox<>(), createSpacer(),
-            unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show.unstable")));
+        gameVersionComboBox = new JComboBox<>();
+
+        unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show.unstable"));
         unstableCheckbox.setSelected(false);
         unstableCheckbox.addActionListener(e -> {
-            if (Main.GAME_VERSION_META.isComplete()) {
-                updateGameVersions();
+            if (GAME_VERSION_META.isComplete()) {
+                updateGameVersions(GAME_VERSION_META.getVersions());
             }
         });
 
-        Main.GAME_VERSION_META.onComplete(versions -> updateGameVersions());
+        addRow(pane, c, "prompt.game.version", gameVersionComboBox, createSpacer(), unstableCheckbox);
+        GAME_VERSION_META.onComplete(this::updateGameVersions);
 
-        addRow(pane, c, "prompt.loader.version", loaderVersionComboBox = new JComboBox<>());
+        loaderVersionComboBox = new JComboBox<>();
+
+        loaderProxyCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.use.proxy"));
+        loaderProxyCheckbox.setSelected(true);
+        loaderProxyCheckbox.addActionListener(e -> {
+            if (Main.LOADER_META.isComplete()) {
+                updateLoaderVersions(Main.LOADER_META.getVersions());
+            }
+        });
+
+        addRow(pane, c, "prompt.loader.version", loaderVersionComboBox, createSpacer(), loaderProxyCheckbox);
+        Main.LOADER_META.onComplete(this::updateLoaderVersions);
 
         addRow(pane, c, "prompt.select.location", installLocation = new JTextField(20),
             selectFolderButton = new JButton());
@@ -111,47 +147,53 @@ public abstract class Handler implements InstallerProgress {
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
-        addLastRow(pane, c, null, buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install")));
+        buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install"));
+        buttonInstall.setToolTipText(Utils.BUNDLE.getString("tooltip.install"));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
             install();
         });
 
-        Main.LOADER_META.onComplete(versions -> {
-            int latestStable = -1;
-            for (int i = 0; i < versions.size(); ++i) {
-                final var version = versions.get(i);
-
-                loaderVersionComboBox.addItem(version.id());
-                if (latestStable == -1 && !version.isUnstable()) {
-                    latestStable = i;
-                }
-            }
-
-            loaderVersionComboBox.addItem(SELECT_CUSTOM_ITEM);
-
-            loaderVersionComboBox.setSelectedIndex(latestStable);
-            statusLabel.setText(Utils.BUNDLE.getString("prompt.ready.install"));
+        buttonInstallManual = new JButton(Utils.BUNDLE.getString("prompt.install.manual"));
+        buttonInstallManual.setToolTipText(Utils.BUNDLE.getString("tooltip.install.manual"));
+        buttonInstallManual.addActionListener(e -> {
+            buttonInstallManual.setEnabled(false);
+            installManual();
         });
+
+        addLastRow(pane, c, null, buttonInstall, buttonInstallManual);
 
         installerGui.updateSize(true);
 
         return pane;
     }
 
-    private void updateGameVersions() {
+    private void updateGameVersions(List<GameMetaHandler.Version> versions) {
         gameVersionComboBox.removeAllItems();
 
-        for (MetaHandler.GameVersion version : Main.GAME_VERSION_META.getVersions()) {
+        for (GameMetaHandler.Version version : versions) {
             if (!unstableCheckbox.isSelected() && version.isUnstable()) {
                 continue;
             }
 
             gameVersionComboBox.addItem(version.id());
         }
-
         gameVersionComboBox.setSelectedIndex(0);
 
+        InstallerGui.instance.updateSize(false);
+    }
+
+    private void updateLoaderVersions(List<LoaderMetaHandler.Version> versions) {
+        loaderVersionComboBox.removeAllItems();
+
+        for (LoaderMetaHandler.Version version : versions) {
+            loaderVersionComboBox.addItem(version.id());
+        }
+
+        loaderVersionComboBox.addItem(SELECT_CUSTOM_ITEM);
+
+        loaderVersionComboBox.setSelectedIndex(0);
+        statusLabel.setText(Utils.BUNDLE.getString("prompt.ready.install"));
         InstallerGui.instance.updateSize(false);
     }
 
@@ -268,10 +310,10 @@ public abstract class Handler implements InstallerProgress {
     }
 
     protected String getGameVersion(ArgumentParser args) {
-        return getVersion(args.get("pzversion"), args.has("unstable"), Main.GAME_VERSION_META);
+        return GAME_VERSION_META.parseVersion(args.get("gameVersion"), args.has("unstable")).id();
     }
 
     protected String getLoaderVersion(ArgumentParser args) {
-        return getVersion(args.get("loader"), false, Main.LOADER_META);
+        return LOADER_META.parseVersion(args.get("loader"), false).id();
     }
 }

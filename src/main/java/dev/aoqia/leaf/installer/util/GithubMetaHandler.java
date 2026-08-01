@@ -16,20 +16,17 @@
 package dev.aoqia.leaf.installer.util;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
-
-import dev.aoqia.leaf.installer.Main;
-import dev.aoqia.leaf.installer.util.json.GitTreeObject;
+import dev.aoqia.leaf.installer.util.json.GitTree;
 
 /**
  * The primary use of this class is to parse git trees of a repository.
  * For example, this is used to get all the files in a specific folder under the leaf repository.
  */
-public class GithubMetaHandler extends MetaHandler {
+public class GithubMetaHandler extends LoaderMetaHandler {
     private String[] subfolders;
 
     public GithubMetaHandler(String repoOwner, String repoName, String branch) {
@@ -43,20 +40,18 @@ public class GithubMetaHandler extends MetaHandler {
 
     @Override
     public void load() throws IOException {
-        JsonNode gitTreeNode = LeafService.queryJsonSubstitutedMaven(getMetaPath()).path("tree");
+        GitTree.GitTreeObject[] tree = LeafService.queryJsonSubstitutedMaven(getMetaPath(), GitTree.class).tree();
 
         // Resolve the subfolder tree if required, used to get files in loader/ folder.
         if (this.subfolders != null) {
             int subfoldersFound = 0;
 
             int i = 0;
-            JsonNode node;
-            while(i < gitTreeNode.size()) {
-                node = gitTreeNode.get(i);
+            while (i < tree.length) {
+                GitTree.GitTreeObject node = tree[i];
 
-                if (node.path("type").asString().equals("tree")
-                    && node.path("path").asString().equals(this.subfolders[subfoldersFound])) {
-                    gitTreeNode = LeafService.queryJsonSubstitutedMaven(node.path("url").asString()).path("tree");
+                if (node.type().equals("tree") && node.path().equals(this.subfolders[subfoldersFound])) {
+                    tree = LeafService.queryJsonSubstitutedMaven(node.url(), GitTree.class).tree();
                     subfoldersFound++;
                     i = 0;
                 }
@@ -70,13 +65,12 @@ public class GithubMetaHandler extends MetaHandler {
             }
         }
 
-        List<GameVersion> temp;
-        final var versionsJson = Main.OBJECT_MAPPER.treeToValue(gitTreeNode,
-            new TypeReference<List<GitTreeObject>>() {});
+        List<Version> temp;
 
-        temp = versionsJson.stream()
-            .map(GameVersion::new)
-            .sorted((v1, v2) -> v2.id.compareToIgnoreCase(v1.id))
+        temp = Arrays
+            .stream(tree)
+            .map(Version::new)
+            .sorted((v1, v2) -> v2.id().compareToIgnoreCase(v1.id()))
             .collect(Collectors.toList());
         setVersions(temp);
 

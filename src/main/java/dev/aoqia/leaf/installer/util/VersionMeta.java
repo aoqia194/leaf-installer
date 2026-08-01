@@ -15,33 +15,8 @@
  */
 package dev.aoqia.leaf.installer.util;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import tools.jackson.databind.JsonNode;
-
-public class VersionMeta {
-    public final String id;
-    public final Map<String, Download> downloads;
-
-    public VersionMeta(JsonNode json) {
-        id = json.path("id").stringValue();
-        downloads = new HashMap<>();
-
-        json.path("downloads")
-            .properties()
-            .forEach(entry -> downloads.put(entry.getKey(), new Download(entry.getValue())));
-    }
-
-    public static class Download {
-        public final String sha1;
-        public final long size;
-        public final String url;
-
-        public Download(JsonNode json) {
-            sha1 = json.path("sha1").stringValue();
-            size = json.path("size").longValue();
-            url = json.path("url").stringValue();
-        }
-    }
+public record VersionMeta(String id, Map<String, Download> downloads) {
+    public record Download(String sha1, Long size, String url) {}
 }

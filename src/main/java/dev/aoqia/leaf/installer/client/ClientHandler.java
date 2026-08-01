@@ -15,8 +15,9 @@
  */
 package dev.aoqia.leaf.installer.client;
 
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,14 +27,13 @@ import java.text.MessageFormat;
 import dev.aoqia.leaf.installer.Handler;
 import dev.aoqia.leaf.installer.InstallerGui;
 import dev.aoqia.leaf.installer.LoaderVersion;
-import dev.aoqia.leaf.installer.util.*;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
+import dev.aoqia.leaf.installer.util.ArgumentParser;
+import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.NoopCaret;
+import dev.aoqia.leaf.installer.util.Reference;
+import dev.aoqia.leaf.installer.util.Utils;
 
 public class ClientHandler extends Handler {
-    private JCheckBox createProfile;
-
     @Override
     public String name() {
         return Utils.BUNDLE.getString("tab.client");
@@ -41,6 +41,32 @@ public class ClientHandler extends Handler {
 
     @Override
     public void install() {
+        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
+
+        System.out.println("Installing");
+
+        new Thread(() -> {
+            try {
+                updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing")).format(
+                    new Object[] { "(proxy)" }));
+
+                Path pzPath = Paths.get(installLocation.getText());
+                if (!Files.exists(pzPath)) {
+                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
+                }
+
+                new ClientInstaller(pzPath, gameVersion, this).install(true);
+                SwingUtilities.invokeLater(() -> showInstalledMessage("(proxy)", gameVersion));
+            } catch (Exception e) {
+                error(e);
+            } finally {
+                buttonInstall.setEnabled(true);
+            }
+        }).start();
+    }
+
+    @Override
+    public void installManual() {
         String gameVersion = (String) gameVersionComboBox.getSelectedItem();
         LoaderVersion loaderVersion = queryLoaderVersion();
         if (loaderVersion == null) {
@@ -51,29 +77,16 @@ public class ClientHandler extends Handler {
 
         new Thread(() -> {
             try {
-                updateProgress(new MessageFormat(
-                    Utils.BUNDLE.getString("progress.installing")).format(new Object[] {
+                updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing")).format(new Object[] {
                     loaderVersion.name }));
 
                 Path pzPath = Paths.get(installLocation.getText());
                 if (!Files.exists(pzPath)) {
-                    throw new RuntimeException(Utils.BUNDLE.getString(
-                        "progress.exception.no.launcher.directory"));
+                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
                 }
 
-                String profileName = new ClientInstaller(pzPath, gameVersion, loaderVersion,
-                    this).install(createProfile.isSelected());
-                SwingUtilities.invokeLater(() -> {
-                    showInstalledMessage(loaderVersion.name, gameVersion,
-                        pzPath.resolve(".leaf/mods"));
-
-                    // Copy to clipboard.
-                    Toolkit.getDefaultToolkit()
-                        .getSystemClipboard()
-                        .setContents(
-                            new StringSelection(String.format("-pzexeconfig %s.json", profileName)),
-                            null);
-                });
+                new ClientInstaller(pzPath, gameVersion, loaderVersion, this).install(false);
+                SwingUtilities.invokeLater(() -> showInstalledMessage(loaderVersion.name, gameVersion));
             } catch (Exception e) {
                 error(e);
             } finally {
@@ -93,30 +106,25 @@ public class ClientHandler extends Handler {
         LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
 
         new ClientInstaller(path, gameVersion, loaderVersion, InstallerProgress.CONSOLE).install(
-            !args.has("noprofile"));
+            !args.has("manual"));
     }
 
     @Override
     public String cliHelp() {
-        return "-dir <install dir> " +
-               "-pzversion <zomboid version, default latest> " +
-               "-loader <loader version, default latest>";
+        return "-dir <install dir> " + "-pzversion <zomboid version, default latest> "
+            + "-loader <loader version, default latest>";
     }
 
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
-//        addRow(pane, c, null,
-//            createProfile = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), false));
         installLocation.setText(Utils.getClientGamePath().toString());
     }
 
-    private void showInstalledMessage(String loaderVersion, String gameVersion,
-        Path modsDirectory) {
+    private void showInstalledMessage(String loaderVersion, String gameVersion) {
         JEditorPane pane = new JEditorPane("text/html",
             String.format("<html><body style=\"%s\">%s</body></html>", buildEditorPaneStyle(),
                 new MessageFormat(Utils.BUNDLE.getString("prompt.install.successful")).format(
-                    new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL }
-                )));
+                    new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL })));
         pane.setBackground(new Color(0, 0, 0, 0));
         pane.setEditable(false);
         pane.setCaret(new NoopCaret());
@@ -124,14 +132,10 @@ public class ClientHandler extends Handler {
         pane.addHyperlinkListener(e -> {
             try {
                 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    if (e.getDescription().equals("leaf://mods")) {
-                        Desktop.getDesktop().open(modsDirectory.toRealPath().toFile());
-                    } else if (Desktop.isDesktopSupported() &&
-                               Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                         Desktop.getDesktop().browse(e.getURL().toURI());
                     } else {
-                        throw new UnsupportedOperationException("Failed to open "
-                                                                + e.getURL().toString());
+                        throw new UnsupportedOperationException("Failed to open " + e.getURL().toString());
                     }
                 }
             } catch (Throwable throwable) {
@@ -139,12 +143,10 @@ public class ClientHandler extends Handler {
             }
         });
 
-        final Image iconImage = Toolkit.getDefaultToolkit()
+        final Image iconImage = Toolkit
+            .getDefaultToolkit()
             .getImage(ClassLoader.getSystemClassLoader().getResource("icon.png"));
-        JOptionPane.showMessageDialog(null,
-            pane,
-            Utils.BUNDLE.getString("prompt.install.successful.title"),
-            JOptionPane.INFORMATION_MESSAGE,
-            new ImageIcon(iconImage.getScaledInstance(64, 64, Image.SCALE_DEFAULT)));
+        JOptionPane.showMessageDialog(null, pane, Utils.BUNDLE.getString("prompt.install.successful.title"),
+            JOptionPane.INFORMATION_MESSAGE, new ImageIcon(iconImage.getScaledInstance(64, 64, Image.SCALE_DEFAULT)));
     }
 }

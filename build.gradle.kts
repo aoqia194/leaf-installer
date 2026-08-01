@@ -40,7 +40,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.jackson.databind)
+    implementation(libs.dsljson)
     implementation(libs.commons.collections)
     implementation(libs.flatlaf)
 
