@@ -30,11 +30,11 @@ public class GithubMetaHandler extends LoaderMetaHandler {
     private String[] subfolders;
 
     public GithubMetaHandler(String repoOwner, String repoName, String branch) {
-        super("loader", String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
+        super(String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
     }
 
     public GithubMetaHandler(String repoOwner, String repoName, String branch, String[] subfolders) {
-        super("loader", String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
+        super(String.format("%srepos/%s/%s/git/trees/%s", Reference.GITHUB_API, repoOwner, repoName, branch));
         this.subfolders = subfolders;
     }
 

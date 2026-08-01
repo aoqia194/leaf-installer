@@ -15,20 +15,11 @@
  */
 package dev.aoqia.leaf.installer.util.json;
 
-import java.util.List;
 import java.util.Map;
 
 import com.dslplatform.json.CompiledJson;
 
 @CompiledJson
-public record VersionTable(Object versions) {
-    @SuppressWarnings("unchecked")
-    public <T> Map<String, T> getVersionsAsMap() {
-        return (Map<String, T>) versions;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> List<T> getVersionsAsList() {
-        return (List<T>) versions;
-    }
+public record VersionTable(Map<String, Version> versions) {
+    public record Version(String url, String size, String hash, String releaseTime, String generateTime) {}
 }

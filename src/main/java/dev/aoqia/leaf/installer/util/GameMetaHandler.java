@@ -27,26 +27,14 @@ import dev.aoqia.leaf.installer.util.json.VersionTable;
 public class GameMetaHandler extends MetaHandler<GameMetaHandler.Version> {
     private List<Version> versions;
 
-    public GameMetaHandler(String name, String metaPath) {
-        super(name, metaPath);
+    public GameMetaHandler(String metaPath) {
+        super(metaPath);
     }
 
     @Override
     public void load() throws IOException {
         VersionTable versionTable = LeafService.queryMetaJson(getMetaPath(), VersionTable.class);
-        Object versions = versionTable.versions();
-
-        List<Version> temp;
-        if (versions instanceof List) {
-            temp = versionTable.getVersionsAsList();
-        } else if (versions instanceof Map) {
-            temp = new ArrayList<>();
-            versionTable.getVersionsAsMap().forEach((key, value) -> temp.add((Version) value));
-        } else {
-            throw new IllegalStateException("Exploded!");
-        }
-
-        this.versions = temp;
+        this.versions = versionTable.versions().keySet().stream().map(Version::new).toList();
         complete(this.versions);
     }
 

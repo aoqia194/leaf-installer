@@ -19,20 +19,14 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class MetaHandler<T> extends CompletableHandler<List<T>> {
-    private final String name;
     private final String metaPath;
 
-    public MetaHandler(String name, String metaPath) {
-        this.name = name;
+    public MetaHandler(String metaPath) {
         this.metaPath = metaPath;
     }
 
     public abstract void load() throws IOException;
     public abstract T parseVersion(String value, boolean snapshot);
-
-    public String getName() {
-        return name;
-    }
 
     public String getMetaPath() {
         return metaPath;

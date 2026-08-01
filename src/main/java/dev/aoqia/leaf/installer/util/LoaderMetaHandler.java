@@ -23,8 +23,8 @@ import dev.aoqia.leaf.installer.util.json.GitTree;
 public abstract class LoaderMetaHandler extends MetaHandler<LoaderMetaHandler.Version> {
     private List<Version> versions;
 
-    public LoaderMetaHandler(String name, String metaPath) {
-        super(name, metaPath);
+    public LoaderMetaHandler(String metaPath) {
+        super(metaPath);
     }
 
     public Version getLatestVersion() {
