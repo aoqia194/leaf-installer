@@ -63,4 +63,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
+          fail_on_unmatched_files: true
+          files: |
+            build/libs/*.!(*-*).jar*
           body: ${{ steps.cliff.outputs.content }}
