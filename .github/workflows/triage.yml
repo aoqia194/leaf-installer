@@ -1,0 +1,37 @@
+name: Triage new issues/PRs
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  add-triage-label:
+    name: Add needs-triage label
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'issues' && github.event.issue.labels == '') || (github.event_name == 'pull_request' && github.event.pull_request.labels == '')
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - run: gh issue edit "$ISSUE_URL" --add-label "status/needs-triage"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
+  add-to-project:
+    name: Add to project
+    runs-on: ubuntu-latest
+    needs: add-triage-label
+    environment: triage
+    permissions:
+      repository-projects: write
+    steps:
+      - uses: actions/add-to-project@v2
+        with:
+          project-url: https://github.com/users/${{ github.repository_owner }}/projects/6
+          github-token: ${{ secrets.PAT_LEAF_PROJECTS }}
+          labeled: status/needs-triage
+          label-operator: AND
