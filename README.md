@@ -1,6 +1,6 @@
 <div align="center">
 
-### **A universal installer for [<img src="src/main/resources/icon.png" width="18" height="auto"> leaf][1]**
+## **The universal installer for [<img src="src/main/resources/icon.png" width="18" height="auto"> leaf][1]**
 
 ![Gradle Version](https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle)
 ![License](https://img.shields.io/badge/License-Apache%202.0-orange)
