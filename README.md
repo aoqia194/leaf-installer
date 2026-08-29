@@ -2,9 +2,12 @@
 
 # **The universal installer for [<img src="src/main/resources/icon.png" width="36" height="auto"> leaf][1]**
 
+<img src="https://img.shields.io/github/license/aoqia194/leaf-installer?label=License" alt="License" height="30">
 <img src="https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle" alt="Gradle version" height="30">
-<img src="https://img.shields.io/badge/License-Apache%202.0-orange" alt="License" height="30">
-<img src="https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main" alt="Build status" height="30">
+<img src="https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build" alt="Build status" height="30">
+<img src="https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads" alt="Downloads" height="30">
+<img src="https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code Size" alt="Code Size" height="30">
+<img src="https://img.shields.io/website?url=https%3A%2F%2Fmaven.aoqia.dev%2F&label=Maven" alt="Maven status" height="30">
 
 </div>
 
