@@ -5,6 +5,7 @@
 !/gradle
 !/src
 
+!/.editorconfig
 !/.cliff.toml
 !/.gitignore
 !/build.gradle.kts
