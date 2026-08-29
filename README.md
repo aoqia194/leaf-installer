@@ -1,12 +1,14 @@
 <div align="center">
 
-## **The universal installer for [<img src="src/main/resources/icon.png" width="18" height="auto"> leaf][1]**
+# **The universal installer for [<img src="src/main/resources/icon.png" width="36" height="auto"> leaf][1]**
 
-![Gradle Version](https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle)
-![License](https://img.shields.io/badge/License-Apache%202.0-orange)
-![Build Status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main)
+<img src="https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle" alt="Gradle version" height="30">
+<img src="https://img.shields.io/badge/License-Apache%202.0-orange" alt="License" height="30">
+<img src="https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main" alt="Build status" height="30">
 
 </div>
+
+---
 
 ### Requirements
 
