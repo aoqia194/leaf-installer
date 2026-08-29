@@ -1,10 +1,14 @@
-import groovy.xml.XmlSlurper
-import groovy.xml.slurpersupport.GPathResult
-import groovy.xml.slurpersupport.NodeChildren
-import java.net.URL
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 
 val isCiBuild = providers.environmentVariable("CI").map { it.toBoolean() }.orElse(false).get()
 val isSnapshot = providers.gradleProperty("isSnapshot").map { it.toBoolean() }.orElse(false).get()
+
+val mavenRepoUrl: String by project
+val mavenRepoName = if (isSnapshot) "snapshots" else "releases"
 
 val baseVersion = project.version.toString()
 project.version = if (isSnapshot) "$baseVersion-SNAPSHOT" else if (!isCiBuild) "$baseVersion.local" else baseVersion
@@ -43,7 +47,6 @@ base {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
-//    withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -85,7 +88,6 @@ tasks {
         }
 
         archiveClassifier.set("")
-        exclude("icon.ico")
     }
 
     publish {
@@ -101,19 +103,25 @@ tasks {
 
 val checkVersion by tasks.registering {
     description = "Ensures that the version being released has not already been released"
-    doFirst {
-        val xml = URL(
-            "https://repo.maven.apache.org/maven2/${
-                rootProject.group.toString().replace(".", "/")
-            }/${rootProject.name}/maven-metadata.xml"
-        ).readText()
-        val metadata = XmlSlurper().parseText(xml)
 
-        val versioning = metadata.getProperty("versioning") as GPathResult
-        val versions = versioning.getProperty("versions") as GPathResult
-        val versionText = (versions.getProperty("version") as NodeChildren).map { it.toString() }
-        if (versionText.contains(version)) {
-            throw RuntimeException ("$version has already been released!")
+    doLast {
+        val groupPath = rootProject.group.toString().replace(".", "/")
+        val artifactId = project.name
+        val version = project.version.toString()
+        val url = "$mavenRepoUrl/$mavenRepoName/$groupPath/$artifactId/$version/$artifactId-$version.jar"
+
+        val client = HttpClient.newHttpClient()
+        val request = HttpRequest.newBuilder()
+            .uri(URI(url))
+            .method("HEAD", HttpRequest.BodyPublishers.noBody())
+            .timeout(Duration.ofSeconds(5))
+            .build()
+
+        val response = client.send(request, HttpResponse.BodyHandlers.discarding())
+        when (response.statusCode()) {
+            200 -> throw RuntimeException("Artifact $artifactId with version $version already published!")
+            404 -> println("Artifact $artifactId with version $version is not published.")
+            else -> println("Unexpected response code: ${response.statusCode()}")
         }
     }
 }
@@ -125,11 +133,8 @@ publishing {
             artifactId = project.name
             version = project.version.toString()
 
-            artifact(tasks.named("shadowJar")) {
-                classifier = null
-            }
+            from(components["shadow"])
             artifact(tasks.named("sourcesJar"))
-//        artifact(tasks.named("javadocJar"))
 
             pom {
                 name = rootProject.name
@@ -137,22 +142,27 @@ publishing {
                 description = rootProject.description
                 url = property("url").toString()
                 inceptionYear = "2025"
+
                 developers {
                     developer {
                         id = "aoqia"
                         name = "aoqia"
+                        email = "aoqia@aoqia.dev"
                     }
                 }
+
                 issueManagement {
                     system = "GitHub"
                     url = "${property("url").toString()}/issues"
                 }
+
                 licenses {
                     license {
                         name = "Apache-2.0"
                         url = "https://spdx.org/licenses/Apache-2.0.html"
                     }
                 }
+
                 scm {
                     connection = "scm:git:${property("url").toString()}.git"
                     developerConnection =
