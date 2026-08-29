@@ -19,12 +19,12 @@
 ### Requirements
 
 - Java 17 or higher
-- **(optional)** [JarFix][2] \
+- **(optional)** [JarFix][1] \
   <small>Useful if you are on Windows and double-clicking the installer JAR doesn't open it.</small>
 
 ### Installation
 
-The primary use-case for this project is to install the [leaf-loader][1] and its dependencies. The only thing you need
+The primary use-case for this project is to install the [leaf-loader][2] and its dependencies. The only thing you need
 to do is download the JAR linked in the [latest release][3].
 
 ### Usage
@@ -33,8 +33,13 @@ to do is download the JAR linked in the [latest release][3].
 2. Choose the environment -- client/server
 3. Check the game path is set correctly
 4. Press install
+5. Subscribe to the **[Leaf Loader][4]** mod on the Steam Workshop
 
 ***It really is that easy!***
+
+That's all you need to get started! You do not need to enable the leaf loader mod in-game for it to be loaded by the
+proxy. You can now subscribe to any Leaf mod on the Workshop, and when you enable it, it will be loaded when you next
+start the game.
 
 Using the proxy is the **default recommended** method. You may choose to manually install the loader if you want,
 however it will not auto-update the loader or any of its dependencies. It is on you to update where necessary, but it is
@@ -63,12 +68,26 @@ You can build the project like so:
 ./gradlew build
 ```
 
+For developing your own Leaf mods, you will want to read the [Leaf][7] wiki page which will contain a top-down summary of
+the entire leaf project.
+
+### Support
+
+If you need any help whatsoever with Leaf, you can discuss anything leaf-related on Discord through the
+official [Project Zomboid Modding Community](https://discord.gg/2Vr6Wyh6Am) Discord using the appropriate channels.
+
 ### Special Thanks
 
-The entire [FabricMC team](https://github.com/FabricMC/)!
+- The entire [FabricMC team](https://github.com/FabricMC/)!
+- [albion](https://github.com/demiurgeQuantified)
+- GigaWatte
+- electrisoma
+- SimKDT
 
-[1]: https://github.com/aoqia194/leaf-loader
-[2]: https://johann.loefflmann.net/en/software/jarfix/index.html
+[1]: https://johann.loefflmann.net/en/software/jarfix/index.html
+[2]: https://github.com/aoqia194/leaf-loader
 [3]: https://github.com/aoqia194/leaf-installer/releases/latest
-[4]: https://pzwiki.net/wiki/Startup_parameters
-[5]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
+[4]: https://steamcommunity.com/sharedfiles/filedetails/?id=3776625738
+[5]: https://pzwiki.net/wiki/Startup_parameters
+[6]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
+[7]: https://pzwiki.net/wiki/Leaf
