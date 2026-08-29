@@ -38,7 +38,7 @@ jobs:
           ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           ORG_GRADLE_PROJECT_isSnapshot: ${{ github.event.inputs.is_snapshot || false }}
       - name: Generate Changelog
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        if: ${{ !github.event.inputs.is_snapshot || false }}
         id: cliff
         uses: orhun/git-cliff-action@v4
         with:
@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_REPO: ${{ github.repository }}
       - name: Create GitHub Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        if: ${{ !github.event.inputs.is_snapshot || false }}
         uses: softprops/action-gh-release@v3
         with:
           fail_on_unmatched_files: true
