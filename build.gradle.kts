@@ -7,7 +7,7 @@ import java.time.Duration
 val isCiBuild = providers.environmentVariable("CI").map { it.toBoolean() }.orElse(false).get()
 val isSnapshot = providers.gradleProperty("isSnapshot").map { it.toBoolean() }.orElse(false).get()
 
-val mavenRepoUrl: String by project
+val mavenRepoUrl = providers.gradleProperty("mavenRepoUrl")
 val mavenRepoName = if (isSnapshot) "snapshots" else "releases"
 
 val baseVersion = project.version.toString()
@@ -101,7 +101,7 @@ tasks {
     }
 }
 
-val checkVersion by tasks.registering {
+val checkVersion = tasks.register("checkVersion") {
     description = "Ensures that the version being released has not already been released"
 
     doLast {

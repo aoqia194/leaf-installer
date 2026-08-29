@@ -8,7 +8,7 @@
 </h1>
 
 ![License](https://img.shields.io/github/license/aoqia194/leaf-installer?label=License)
-![Gradle version](https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle) 
+![Gradle version](https://img.shields.io/badge/Gradle-9.7.1-teal?logo=gradle) 
 ![Build status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build) 
 ![Downloads](https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads)
 ![Code Size](https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size) 
