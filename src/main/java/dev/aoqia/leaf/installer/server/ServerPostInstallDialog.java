@@ -30,8 +30,6 @@ public class ServerPostInstallDialog extends JDialog {
     private final ServerHandler serverHandler;
     private final Path installDir;
 
-    private JButton generateButton;
-
     private ServerPostInstallDialog(ServerHandler handler) throws HeadlessException {
         super(InstallerGui.instance, true);
         this.serverHandler = handler;

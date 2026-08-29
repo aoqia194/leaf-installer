@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -34,6 +35,8 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import dev.aoqia.leaf.installer.util.json.reposilite.LatestVersion;
 
 import static dev.aoqia.leaf.installer.Main.JSON;
 
@@ -61,6 +64,8 @@ public class Utils {
         });
 
     private static final int HTTP_TIMEOUT_MS = 8000;
+
+    private static Library LOADER_PROXY = null;
 
     public static Path getDefaultSteamLibraryPath() {
         if (OperatingSystem.CURRENT == OperatingSystem.MACOS) {
@@ -110,7 +115,7 @@ public class Utils {
         int offset = 0;
         int len;
 
-		try {
+        try {
             while ((len = is.read(data, offset, data.length - offset)) >= 0) {
                 offset += len;
 
@@ -124,9 +129,9 @@ public class Utils {
                     data[offset++] = (byte) next;
                 }
             }
-		} catch (SocketTimeoutException e) {
-			throw new IOException(String.format("Timed out after reading %d bytes", offset), e);
-		}
+        } catch (SocketTimeoutException e) {
+            throw new IOException(String.format("Timed out after reading %d bytes", offset), e);
+        }
 
         return new String(data, 0, offset, StandardCharsets.UTF_8);
     }
@@ -275,5 +280,34 @@ public class Utils {
 
     public static <T> T deserializeJson(String str, Class<T> clazz) throws IOException {
         return deserializeJson(str.getBytes(), clazz);
+    }
+
+    public static <T> void serializeJson(T obj, OutputStream stream) throws IOException {
+        JSON.serialize(obj, stream);
+    }
+
+    public static Library getLatestLoaderProxy() throws IOException {
+        if (LOADER_PROXY != null) {
+            return LOADER_PROXY;
+        }
+
+        LOADER_PROXY = new Library("dev.aoqia.leaf:loader-proxy:0.0.0", Reference.DEFAULT_MAVEN_SERVER);
+        var latest = LeafService.queryApiJson("maven/latest/version/releases/" + LOADER_PROXY.getBasePath(),
+            LatestVersion.class);
+        LOADER_PROXY.version = latest.version();
+
+        return LOADER_PROXY;
+    }
+
+    public static Path normaliseClientGamePath(Path p) {
+        return switch (OperatingSystem.CURRENT) {
+            case LINUX -> p.resolve("projectzomboid");
+            case MACOS -> p.resolve("Contents/Java");
+            default -> p;
+        };
+    }
+
+    public static Path normaliseServerGamePath(Path p) {
+        return p.resolve("java");
     }
 }

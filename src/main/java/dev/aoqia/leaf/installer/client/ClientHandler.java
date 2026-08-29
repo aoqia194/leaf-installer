@@ -19,6 +19,7 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +31,6 @@ import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.NoopCaret;
-import dev.aoqia.leaf.installer.util.Reference;
 import dev.aoqia.leaf.installer.util.Utils;
 
 public class ClientHandler extends Handler {
@@ -40,53 +40,37 @@ public class ClientHandler extends Handler {
     }
 
     @Override
-    public void install() {
-        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
-
-        System.out.println("Installing");
-
-        new Thread(() -> {
-            try {
-                updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing")).format(
-                    new Object[] { "(proxy)" }));
-
-                Path pzPath = Paths.get(installLocation.getText());
-                if (!Files.exists(pzPath)) {
-                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
-                }
-
-                new ClientInstaller(pzPath, gameVersion, this).install(true);
-                SwingUtilities.invokeLater(() -> showInstalledMessage("(proxy)", gameVersion));
-            } catch (Exception e) {
-                error(e);
-            } finally {
-                buttonInstall.setEnabled(true);
-            }
-        }).start();
+    public void install(boolean proxy) {
+        installInternal(proxy);
     }
 
-    @Override
-    public void installManual() {
+    private void installInternal(boolean proxy) {
         String gameVersion = (String) gameVersionComboBox.getSelectedItem();
-        LoaderVersion loaderVersion = queryLoaderVersion();
-        if (loaderVersion == null) {
-            return;
+        boolean createConfig = createConfigCheckbox.isEnabled() && createConfigCheckbox.isSelected();
+
+        final LoaderVersion loaderVersion;
+        if (!proxy) {
+            loaderVersion = queryLoaderVersion();
+        } else {
+            try {
+                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
+            } catch (IOException exc) {
+                error(exc);
+                return;
+            }
         }
 
         System.out.println("Installing");
 
         new Thread(() -> {
             try {
-                updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing")).format(new Object[] {
-                    loaderVersion.name }));
-
-                Path pzPath = Paths.get(installLocation.getText());
+                Path pzPath = Utils.normaliseClientGamePath(Paths.get(installLocation.getText())).toAbsolutePath();
                 if (!Files.exists(pzPath)) {
                     throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
                 }
 
-                new ClientInstaller(pzPath, gameVersion, loaderVersion, this).install(false);
-                SwingUtilities.invokeLater(() -> showInstalledMessage(loaderVersion.name, gameVersion));
+                new ClientInstaller(pzPath, gameVersion, loaderVersion, this).install(proxy, createConfig);
+                SwingUtilities.invokeLater(() -> showInstalledMessage(proxy, loaderVersion, gameVersion));
             } catch (Exception e) {
                 error(e);
             } finally {
@@ -102,17 +86,33 @@ public class ClientHandler extends Handler {
             throw new FileNotFoundException("Game directory not found at " + path);
         }
 
-        String gameVersion = getGameVersion(args);
-        LoaderVersion loaderVersion = new LoaderVersion(getLoaderVersion(args));
+        boolean useProxy = !args.has("manual");
+        boolean createConfig = args.has("createConfig");
 
-        new ClientInstaller(path, gameVersion, loaderVersion, InstallerProgress.CONSOLE).install(
-            !args.has("manual"));
+        String gameVersion = getGameVersion(args);
+
+        final LoaderVersion loaderVersion;
+        if (!useProxy) {
+            loaderVersion = new LoaderVersion(getLoaderVersion(args));
+        } else {
+            try {
+                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
+            } catch (IOException exc) {
+                error(exc);
+                return;
+            }
+        }
+
+        new ClientInstaller(path, gameVersion, loaderVersion, InstallerProgress.CONSOLE)
+            .install(useProxy, createConfig);
     }
 
     @Override
     public String cliHelp() {
-        return "-dir <install dir> " + "-pzversion <zomboid version, default latest> "
-            + "-loader <loader version, default latest>";
+        return "-dir <install dir> -- (default: current dir) "
+            + "-game <version> -- (default: latest) "
+            + "-loader <version> -- (default: latest) "
+            + "-manual -- (default: null)";
     }
 
     @Override
@@ -120,11 +120,11 @@ public class ClientHandler extends Handler {
         installLocation.setText(Utils.getClientGamePath().toString());
     }
 
-    private void showInstalledMessage(String loaderVersion, String gameVersion) {
+    private void showInstalledMessage(boolean proxy, LoaderVersion loaderVersion, String gameVersion) {
         JEditorPane pane = new JEditorPane("text/html",
             String.format("<html><body style=\"%s\">%s</body></html>", buildEditorPaneStyle(),
                 new MessageFormat(Utils.BUNDLE.getString("prompt.install.successful")).format(
-                    new Object[] { loaderVersion, gameVersion, Reference.LEAF_API_URL })));
+                    new Object[] { (proxy ? "Proxy " : "") + loaderVersion.name, gameVersion })));
         pane.setBackground(new Color(0, 0, 0, 0));
         pane.setEditable(false);
         pane.setCaret(new NoopCaret());

@@ -37,6 +37,8 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -44,6 +46,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
 
+import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.GameMetaHandler;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
@@ -59,16 +62,18 @@ public abstract class Handler implements InstallerProgress {
 
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
 
-    public JButton buttonInstall;
+    private JPanel pane;
 
+    public JButton buttonInstall;
+    public JButton copyArgButton;
     public JComboBox<String> gameVersionComboBox;
     public JTextField installLocation;
     public JButton selectFolderButton;
     public JLabel statusLabel;
     public JCheckBox unstableCheckbox;
     public JCheckBox loaderProxyCheckbox;
-    private JComboBox<String> loaderVersionComboBox;
-    private JPanel pane;
+    public JComboBox<String> loaderVersionComboBox;
+    public JCheckBox createConfigCheckbox;
 
     protected static Component createSpacer() {
         return Box.createRigidArea(new Dimension(4, 0));
@@ -76,15 +81,7 @@ public abstract class Handler implements InstallerProgress {
 
     public abstract String name();
 
-    /**
-     * Installs the proxy loader.
-     */
-    public abstract void install();
-
-    /**
-     * Installs the loader itself.
-     */
-    public abstract void installManual();
+    public abstract void install(boolean proxy);
 
     public abstract void installCli(ArgumentParser args) throws Exception;
 
@@ -108,8 +105,10 @@ public abstract class Handler implements InstallerProgress {
         setupPane1(pane, c, installerGui);
 
         gameVersionComboBox = new JComboBox<>();
+        gameVersionComboBox.setEnabled(false);
 
         unstableCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.show.unstable"));
+        unstableCheckbox.setEnabled(false);
         unstableCheckbox.setSelected(false);
         unstableCheckbox.addActionListener(e -> {
             if (GAME_VERSION_META.isComplete()) {
@@ -127,8 +126,14 @@ public abstract class Handler implements InstallerProgress {
         loaderProxyCheckbox.setToolTipText(Utils.BUNDLE.getString("tooltip.use.proxy"));
         loaderProxyCheckbox.setSelected(true);
         loaderProxyCheckbox.addActionListener(e -> {
-            loaderVersionComboBox.setEnabled(!loaderProxyCheckbox.isSelected());
-            if (!loaderProxyCheckbox.isSelected() && Main.LOADER_META.isComplete()) {
+            final boolean selected = loaderProxyCheckbox.isSelected();
+
+            gameVersionComboBox.setEnabled(!selected);
+            unstableCheckbox.setEnabled(!selected);
+            loaderVersionComboBox.setEnabled(!selected);
+            createConfigCheckbox.setEnabled(!selected);
+
+            if (!selected && Main.LOADER_META.isComplete()) {
                 updateLoaderVersions(Main.LOADER_META.getVersions());
             }
         });
@@ -146,21 +151,38 @@ public abstract class Handler implements InstallerProgress {
 
         setupPane2(pane, c, installerGui);
 
+        createConfigCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.create.config"), true);
+        createConfigCheckbox.setEnabled(false);
+        addRow(pane, c, null, createConfigCheckbox);
+
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
+
+       copyArgButton = new JButton(Utils.BUNDLE.getString("prompt.copy.arg"));
+       copyArgButton.addActionListener(e -> {
+           StringSelection s;
+           if (loaderProxyCheckbox.isSelected()) {
+               try {
+                   s = new StringSelection("-javaagent:.leaf/lib/" + Utils.getLatestLoaderProxy().getJarName());
+               } catch (IOException exc) {
+                   error(exc);
+                   return;
+               }
+           } else {
+               s = new StringSelection(String.format("-pzexeconfig leaf-%s-%s.json",
+                   queryLoaderVersion().name, gameVersionComboBox.getSelectedItem()));
+           }
+
+           Toolkit.getDefaultToolkit().getSystemClipboard().setContents(s, null);
+       });
 
         buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install"));
         buttonInstall.addActionListener(e -> {
             buttonInstall.setEnabled(false);
-
-            if (loaderProxyCheckbox.isSelected()) {
-                install();
-            } else {
-                installManual();
-            }
+            install(loaderProxyCheckbox.isEnabled() && loaderProxyCheckbox.isSelected());
         });
 
-        addLastRow(pane, c, null, buttonInstall);
+        addLastRow(pane, c, null, buttonInstall, copyArgButton);
 
         installerGui.updateSize(true);
 

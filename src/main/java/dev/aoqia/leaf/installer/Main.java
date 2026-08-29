@@ -60,8 +60,9 @@ public class Main {
         // Ensure you include the trailing /
         String metaUrl = argumentParser.get("metaurl");
         String mavenUrl = argumentParser.get("mavenurl");
+        String apiUrl = argumentParser.get("apiurl");
         if (metaUrl != null || mavenUrl != null) {
-            LeafService.setFixed(metaUrl, mavenUrl);
+            LeafService.setFixed(metaUrl, mavenUrl, apiUrl);
         }
 
         GAME_VERSION_META = new GameMetaHandler(Reference.ZOMBOID_VERSION_MANIFEST);

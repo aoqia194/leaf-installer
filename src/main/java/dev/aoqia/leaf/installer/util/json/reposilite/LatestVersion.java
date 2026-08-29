@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.aoqia.leaf.installer.util.json;
-
-import java.util.List;
+package dev.aoqia.leaf.installer.util.json.reposilite;
 
 import com.dslplatform.json.CompiledJson;
 
 @CompiledJson
-public final class LauncherConfig {
-    public String mainClass;
-    public List<String> vmArgs;
-    public List<String> classpath;
-
-    public LauncherConfig() {}
-}
+public record LatestVersion(boolean isSnapshot, String version) {}

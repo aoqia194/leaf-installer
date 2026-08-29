@@ -24,6 +24,7 @@ import org.apache.commons.collections4.iterators.IteratorChain;
 
 import dev.aoqia.leaf.installer.LoaderVersion;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
+import dev.aoqia.leaf.installer.util.LaunchConfigUtil;
 import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.Library;
 import dev.aoqia.leaf.installer.util.Reference;
@@ -33,18 +34,9 @@ import dev.aoqia.leaf.installer.util.json.LoaderJson;
 public class ClientInstaller {
     private final Path gameDir;
     private final String gameVersion;
-    private final Path libsDir;
+    private final Path leafLibDir;
     private final LoaderVersion loaderVersion;
     private final InstallerProgress progress;
-
-    public ClientInstaller(Path gameDir, String gameVersion, InstallerProgress progress) {
-        this.gameDir = gameDir;
-        this.gameVersion = gameVersion;
-        this.loaderVersion = null;
-        this.progress = progress;
-
-        this.libsDir = gameDir.resolve(".leaf/libraries");
-    }
 
     public ClientInstaller(Path gameDir, String gameVersion, LoaderVersion loaderVersion, InstallerProgress progress) {
         this.gameDir = gameDir;
@@ -52,43 +44,63 @@ public class ClientInstaller {
         this.loaderVersion = loaderVersion;
         this.progress = progress;
 
-        this.libsDir = gameDir.resolve(".leaf/libraries");
+        this.leafLibDir = gameDir.resolve(".leaf/lib");
     }
 
-    public String install(boolean proxy) throws IOException {
-        System.out.printf("Installing %s with leaf %s%n", gameVersion, loaderVersion.name);
+    public void install(boolean proxy, boolean createConfig) throws IOException {
+        if (proxy) {
+            System.out.printf("Installing leaf-loader-proxy for %s%n", gameVersion);
+        } else {
+            System.out.printf("Installing leaf-loader %s for %s%n", loaderVersion.name, gameVersion);
+        }
 
-        String configName = String.format("leaf-%s-%s", loaderVersion.name, gameVersion);
-        LoaderJson loaderVersionJson = LeafService.queryMetaJson("loader/%s.json".formatted(loaderVersion.name),
-            LoaderJson.class);
-        LoaderJson.Libraries libsJson = loaderVersionJson.libraries();
+        progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.installing"))
+            .format(new Object[] { (proxy ? "Proxy " : "") + loaderVersion.name }));
 
-        Files.createDirectories(this.libsDir);
+        var proxyLib = Utils.getLatestLoaderProxy();
 
-        // Putting loader dependency into the libs list for later download.
-        libsJson
-            .common()
-            .add(new LoaderJson.Library("dev.aoqia.leaf:loader:" + loaderVersion.name, Reference.DEFAULT_MAVEN_SERVER,
-                null, null, null, null, null));
+        String configName = String.format("leaf-%s-%s", proxy ? proxyLib.version : loaderVersion.name, gameVersion);
+        Files.createDirectories(this.leafLibDir);
 
-        final var libs = new IteratorChain<>(libsJson.common().iterator(), libsJson.client().iterator());
+        if (proxy) {
+            LeafService.downloadSubstitutedMaven(proxyLib.getURL(),
+                leafLibDir.resolve("%s-%s.jar".formatted(proxyLib.artifactId, proxyLib.version)));
+        } else {
+            LoaderJson loaderVersionJson = LeafService.queryMetaJson("dist/loader/%s.json".formatted(loaderVersion.name),
+                LoaderJson.class);
+            LoaderJson.Libraries libsJson = loaderVersionJson.libraries();
+            String mainClass = loaderVersionJson.mainClass().client();
+            String mainClassInternal = mainClass.replace(".", "/");
 
-        libs.forEachRemaining(libJson -> {
-            Library library = new Library(libJson);
-            Path libraryFile = libsDir.resolve("%s-%s.jar".formatted(library.artifactId, library.version));
-            String url = library.getURL();
+            // Putting loader dependency into the libs list for later download.
+            libsJson
+                .common()
+                .add(new LoaderJson.Library("dev.aoqia.leaf:loader:" + loaderVersion.name,
+                    Reference.DEFAULT_MAVEN_SERVER,
+                    null, null, null, null, null));
 
-            progress.updateProgress(new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(
-                new Object[] { library.dependency }));
+            final var libs = new IteratorChain<>(libsJson.common().iterator(), libsJson.client().iterator());
+            libs.forEachRemaining(libJson -> {
+                Library library = new Library(libJson);
+                Path libraryFile = leafLibDir.resolve("%s-%s.jar".formatted(library.artifactId, library.version));
 
-            try {
-                LeafService.downloadSubstitutedMaven(url, libraryFile);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to download library " + library.artifactId, e);
+                progress.updateProgress(
+                    new MessageFormat(Utils.BUNDLE.getString("progress.download.library.entry")).format(
+                        new Object[] { library.dependency }));
+
+                try {
+                    LeafService.downloadSubstitutedMaven(library.getURL(), libraryFile);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to download library " + library.artifactId, e);
+                }
+            });
+
+            if (createConfig) {
+                var launchConfigUtil = new LaunchConfigUtil(gameDir);
+                launchConfigUtil.createConfig(configName, mainClassInternal);
             }
-        });
+        }
 
         progress.updateProgress(Utils.BUNDLE.getString("progress.done"));
-        return configName;
     }
 }

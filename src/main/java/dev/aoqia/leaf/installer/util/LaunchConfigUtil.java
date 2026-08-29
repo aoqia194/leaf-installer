@@ -19,22 +19,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import dev.aoqia.leaf.installer.Main;
 import dev.aoqia.leaf.installer.util.json.LauncherConfig;
 
 public class LaunchConfigUtil {
     private static final String ORIGINAL_CONFIG_NAME = "ProjectZomboid64.json";
 
     private final Path gameDir;
-    private final Path libsDir;
+    private final Path leafLibDir;
 
     public LaunchConfigUtil(Path gameDir) {
         this.gameDir = gameDir;
-        this.libsDir = gameDir.resolve(Utils.LEAF_FOLDER).resolve("libraries");
+        this.leafLibDir = gameDir.resolve(Utils.LEAF_FOLDER).resolve("lib");
     }
 
     private static Path getLaunchScriptPath(Path gameDir) {
@@ -61,22 +59,21 @@ public class LaunchConfigUtil {
 
         LauncherConfig newConfigJson;
         try {
-            newConfigJson = Utils.deserializeJson(Files.readString(newConfig), LauncherConfig.class);
+            newConfigJson = Utils.deserializeJson(Files.readAllBytes(newConfig), LauncherConfig.class);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read bootstrapper config: ", e);
         }
 
-        newConfigJson.setMainClass(mainClass);
+        newConfigJson.mainClass = mainClass;
 
         // Add our loader's libraries to the classpath.
         // Java 6+ supports cp wildcards but the bootstrapper hard crashes with them.
-        final List<String> classpath = newConfigJson.getClasspath();
-        try (Stream<Path> stream = Files.walk(libsDir).filter(Files::isRegularFile)) {
-            stream.forEach(path -> classpath.add(this.gameDir.relativize(path).toString()));
+        try (Stream<Path> stream = Files.walk(leafLibDir).filter(Files::isRegularFile)) {
+            stream.forEach(path -> newConfigJson.classpath.add(this.gameDir.relativize(path).toString()));
         }
 
         try {
-            Files.writeString(newConfig, newConfigJson.toString());
+            Utils.serializeJson(newConfigJson, Files.newOutputStream(newConfig));
         } catch (IOException e) {
             throw new RuntimeException("Failed to write bootstrapper config: ", e);
         }
@@ -91,8 +88,8 @@ public class LaunchConfigUtil {
         final var templateData = Files.readString(template);
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
             createScriptWindows(name, mainClass, templateData);
-            // } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
-            //     createScriptLinux(name, mainClass, templateData);
+        } else if (OperatingSystem.CURRENT == OperatingSystem.LINUX) {
+            createScriptLinux(name, mainClass, templateData);
         } else {
             throw new RuntimeException(
                 "Server launch script support not implemented for this OS. Please raise an issue "
@@ -110,7 +107,7 @@ public class LaunchConfigUtil {
         }
 
         var libs = new StringBuilder(matcher.group(1));
-        try (final var stream = Files.walk(this.libsDir).filter(Files::isRegularFile)) {
+        try (final var stream = Files.walk(this.leafLibDir).filter(Files::isRegularFile)) {
             stream.forEach(lib -> libs.append(this.gameDir.relativize(lib)).append(";"));
         }
 

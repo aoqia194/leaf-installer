@@ -57,4 +57,12 @@ public class Library {
             .replace(" ", "_")
             .replaceAll("/", File.separator);
     }
+
+    public String getBasePath() {
+        return "%s/%s".formatted(groupId.replace(".", "/"), artifactId);
+    }
+
+    public String getJarName() {
+        return "%s-%s.jar".formatted(artifactId, version);
+    }
 }

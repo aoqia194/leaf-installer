@@ -25,10 +25,12 @@ public final class LeafService {
 
     private final String meta;
     private final String maven;
+    private final String api;
 
-    LeafService(String meta, String maven) {
+    LeafService(String meta, String maven, String api) {
         this.meta = meta;
         this.maven = maven;
+        this.api = api;
     }
 
     /**
@@ -41,7 +43,16 @@ public final class LeafService {
     }
 
     /**
-     * Query and decode JSON from url, substituting Fabric Maven with fallbacks or overrides.
+     * Query API path and decode as JSON.
+     */
+    public static <T> T queryApiJson(String path, Class<T> clazz) throws IOException {
+        return invokeWithFallbacks(
+            (service, arg) -> Utils.deserializeJson(HttpClient.readString(URI.create(service.api + arg).toURL()),
+                clazz), path);
+    }
+
+    /**
+     * Query and decode JSON from url, substituting aoqia maven with fallbacks or overrides.
      */
     public static <T> T queryJsonSubstitutedMaven(String url, Class<T> clazz) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
@@ -56,7 +67,7 @@ public final class LeafService {
     }
 
     /**
-     * Download url to file, substituting Fabric Maven with fallbacks or overrides.
+     * Download url to file, substituting aoqia maven with fallbacks or overrides.
      */
     public static void downloadSubstitutedMaven(String url, Path out) throws IOException {
         if (!url.startsWith(Reference.DEFAULT_MAVEN_SERVER)) {
@@ -67,7 +78,7 @@ public final class LeafService {
         String path = url.substring(Reference.DEFAULT_MAVEN_SERVER.length());
 
         invokeWithFallbacks((service, arg) -> {
-            HttpClient.downloadFile(URI.create(service.meta + arg).toURL(), out);
+            HttpClient.downloadFile(URI.create(service.maven + arg).toURL(), out);
             return null;
         }, path);
     }
@@ -107,9 +118,9 @@ public final class LeafService {
     /**
      * Configure fixed service urls, disabling fallbacks or the defaults.
      */
-    public static void setFixed(String metaUrl, String mavenUrl) {
-        if (metaUrl == null && mavenUrl == null) {
-            throw new NullPointerException("both meta and maven are null");
+    public static void setFixed(String metaUrl, String mavenUrl, String apiUrl) {
+        if (metaUrl == null && mavenUrl == null && apiUrl == null) {
+            throw new NullPointerException("all of meta/maven/api are null");
         }
 
         if (metaUrl == null) {
@@ -118,9 +129,12 @@ public final class LeafService {
         if (mavenUrl == null) {
             mavenUrl = Reference.DEFAULT_MAVEN_SERVER;
         }
+        if (apiUrl == null) {
+            apiUrl = Reference.DEFAULT_API_SERVER;
+        }
 
         activeIndex = -1;
-        fixedService = new LeafService(metaUrl, mavenUrl);
+        fixedService = new LeafService(metaUrl, mavenUrl, apiUrl);
     }
 
     public String getMetaUrl() {
