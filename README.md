@@ -16,15 +16,17 @@
 
 </div>
 
+The primary use-case for this project is to install the [leaf-loader][1] and its dependencies.
+
 ### Requirements
 
 - Java 17 or higher
-- **(optional)** [JarFix][1] \
+- **(optional)** [JarFix][2] \
   <small>Useful if you are on Windows and double-clicking the installer JAR doesn't open it.</small>
 
 ### Installation
 
-The only thing you need to do is download the JAR linked in the [latest release][2].
+The only thing you need to do is download the JAR linked in the [latest release][3].
 
 ### Usage
 
@@ -37,21 +39,21 @@ The only thing you need to do is download the JAR linked in the [latest release]
 
 Using the proxy is the **default recommended** method. You may choose to manually install the loader if you want,
 however it will not auto-update the loader or any of its dependencies. It is on you to update where necessary, but it is
-safter. Manual installation requires unchecking the "Use proxy" box and by selecting the appropriate game and loader
+safter. Manual installation requires unchecking the `Use proxy` box and by selecting the appropriate game and loader
 versions.
 
 The `Create config` box will, when **NOT** using the proxy, create a launcher config for the game to use. It can be used
 by copying the argument from the installer and pasting it into your Project Zomboid launch options. The `pzexeconfig`
 argument is a game argument, **NOT** a JVM argument. If you do not know the difference, read the
-[Startup parameters][3] pzwiki page.
+[Startup parameters][4] pzwiki page.
 
 If you still need some help with usage of game arguments in Steam, you should read
-[Startup parameters - From the Steam application][4].
+[Startup parameters - From the Steam application][5].
 
 ### Configuration
 
 **(optional)** If you use leaf regularly either for development (as a developer) or production (as a user),
-`LEAF_CLIENT_GAME_PATH` and `LEAF_SERVER_GAME_PATH` environment variables may want to be set to allow for leaf to
+`LEAF_CLIENT_GAME_PATH` and `LEAF_SERVER_GAME_PATH` environment variables may be set to allow for leaf to
 automatically detect the location of your game.
 
 ### Development
@@ -62,14 +64,12 @@ You can build the project like so:
 ./gradlew build
 ```
 
-An installer for the Project Zomboid bootstrapper, used to install leaf-loader
-(a [fabric-loader](https://github.com/FabricMC/fabric-loader) fork) and its dependencies.
-
 ### Special Thanks
 
 The entire [FabricMC team](https://github.com/FabricMC/)!
 
-[1]: https://johann.loefflmann.net/en/software/jarfix/index.html
-[2]: https://github.com/aoqia194/leaf-installer/releases/latest
-[3]: https://pzwiki.net/wiki/Startup_parameters
-[4]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
+[1]: https://github.com/aoqia194/leaf-loader
+[2]: https://johann.loefflmann.net/en/software/jarfix/index.html
+[3]: https://github.com/aoqia194/leaf-installer/releases/latest
+[4]: https://pzwiki.net/wiki/Startup_parameters
+[5]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
