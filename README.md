@@ -16,8 +16,6 @@
 
 </div>
 
-The primary use-case for this project is to install the [leaf-loader][1] and its dependencies.
-
 ### Requirements
 
 - Java 17 or higher
@@ -26,7 +24,8 @@ The primary use-case for this project is to install the [leaf-loader][1] and its
 
 ### Installation
 
-The only thing you need to do is download the JAR linked in the [latest release][3].
+The primary use-case for this project is to install the [leaf-loader][1] and its dependencies. The only thing you need
+to do is download the JAR linked in the [latest release][3].
 
 ### Usage
 
@@ -53,8 +52,8 @@ If you still need some help with usage of game arguments in Steam, you should re
 ### Configuration
 
 **(optional)** If you use leaf regularly either for development (as a developer) or production (as a user),
-`LEAF_CLIENT_GAME_PATH` and `LEAF_SERVER_GAME_PATH` environment variables may be set to allow for leaf to
-automatically detect the location of your game.
+`LEAF_CLIENT_GAME_PATH` and `LEAF_SERVER_GAME_PATH` environment variables may be set to allow for leaf to automatically
+detect the location of your game.
 
 ### Development
 
