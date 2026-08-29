@@ -7,12 +7,12 @@
     </a>
 </h1>
 
-<img src="https://img.shields.io/github/license/aoqia194/leaf-installer?label=License" alt="License" height="30">
-<img src="https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle" alt="Gradle version" height="30">
-<img src="https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build" alt="Build status" height="30">
-<img src="https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads" alt="Downloads" height="30">
-<img src="https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size" alt="Code Size" height="30">
-<img src="https://img.shields.io/website?url=https%3A%2F%2Fmaven.aoqia.dev%2F&label=Maven" alt="Maven status" height="30">
+![License](https://img.shields.io/github/license/aoqia194/leaf-installer?label=License)
+![Gradle version](https://img.shields.io/badge/Gradle-9.5.0-teal?logo=gradle) 
+![Build status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build) 
+![Downloads](https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads)
+![Code Size](https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size) 
+![Maven status](https://img.shields.io/website?url=https%3A%2F%2Fmaven.aoqia.dev%2F&label=Maven)
 
 </div>
 
@@ -68,8 +68,8 @@ You can build the project like so:
 ./gradlew build
 ```
 
-For developing your own Leaf mods, you will want to read the [Leaf][7] wiki page which will contain a top-down summary of
-the entire leaf project.
+For developing your own Leaf mods, you will want to read the [Leaf][7] wiki page which will contain a top-down summary
+of the entire leaf project.
 
 ### Support
 
@@ -82,7 +82,7 @@ official [Project Zomboid Modding Community](https://discord.gg/2Vr6Wyh6Am) Disc
 - [albion](https://github.com/demiurgeQuantified)
 - GigaWatte
 - electrisoma
-- SimKDT
+- [SimKDT](https://github.com/SimKDT)
 
 [1]: https://johann.loefflmann.net/en/software/jarfix/index.html
 [2]: https://github.com/aoqia194/leaf-loader
