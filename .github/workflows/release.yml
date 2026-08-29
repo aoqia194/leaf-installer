@@ -29,6 +29,16 @@ jobs:
           cache: gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+      # If this isn't a snapshot release, publish a snapshot release so that they are both up-to-date.
+      - name: Sync Snapshot
+        if: ${{ !github.event.inputs.is_snapshot }}
+        run: ./gradlew publish -S
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE_KEY }}
+          ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
+          ORG_GRADLE_PROJECT_isSnapshot: true
       - name: Release
         run: ./gradlew publish -S
         env:
