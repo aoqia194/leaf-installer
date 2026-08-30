@@ -8,13 +8,16 @@
 </h1>
 
 ![License](https://img.shields.io/github/license/aoqia194/leaf-installer?label=License)
-![Gradle version](https://img.shields.io/badge/Gradle-9.7.1-teal?logo=gradle) 
-![Build status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build) 
+![Gradle version](https://img.shields.io/badge/Gradle-9.7.1-teal?logo=gradle)
+![Build status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build)
 ![Downloads](https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads)
-![Code Size](https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size) 
+![Code Size](https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size)
 ![Maven status](https://img.shields.io/website?url=https%3A%2F%2Fmaven.aoqia.dev%2F&label=Maven)
 
 </div>
+
+This project is an installer that helps guide a user with installing leaf. It allows the user to choose between two
+methods of installation, those being via proxy-loader and manual installation.
 
 ### Requirements
 
@@ -24,42 +27,93 @@
 
 ### Installation
 
-The primary use-case for this project is to install [leaf-loader][LeafLoaderGitHub] and its dependencies. The only thing you need
-to do is download the JAR linked in the [latest release][LeafInstallerLatestRelease].
+The primary use-case for this project is to install [leaf-loader][LeafLoader] and its dependencies. The only thing you
+need to do is download the JAR linked in the [latest release][LeafInstallerLatestRelease].
 
 ### Usage
 
-1. Run the installer
-2. Choose the environment -- client/server
+> [!CAUTION]
+> You should be informed about the potential risks of Java modding before installing *any* unofficial modding toolchain.
+> There are safeguards that are provided such as leaf mod verification and hashing, but leaf **WILL NOT** stop you from
+> loading a malicious mod from the Workshop or any other source if you allow it to do so.
+>
+> It is always recommended to **deny** loading any mod that you do not trust. If you need help verifying the trust of a
+> given mod, ask around for advice from people with experience. A good place to ask is in the official or unofficial
+> Project Zomboid Discord servers.
+
+<details open>
+<summary>Recommended</summary>
+
+1. Download the installer JAR from the [latest release][LeafInstallerLatestRelease] and run it via double-click \
+   **Double-click may not work on Linux or Mac** - if so, run it via the terminal: `java -jar installer-1.2.0.jar`
+2. Choose the environment - client or server
 3. Check the game path is set correctly
 4. Press install
 5. Subscribe to the **[Leaf Loader][LeafLoaderWorkshop]** mod on the Steam Workshop
 6. Copy the arg to your PZ launch options in Steam using `Copy arg` button (read below for help)
 
-***It really is that easy!***
+</details>
 
-That's all you need to get started! You do not need to enable the leaf loader mod in-game for it to be loaded by the
-proxy. You can now subscribe to any Leaf mod on the Workshop, and when you enable it, it will be loaded when you next
-start the game.
+<details>
+<summary>Manual</summary>
 
-Using the proxy is the **default recommended** method. You may choose to manually install the loader if you want,
-however it will not auto-update the loader or any of its dependencies. It is on you to update where necessary, but it is
-safter. Manual installation requires unchecking the `Use proxy` box and by selecting the appropriate game and loader
-versions.
+Using the proxy is the **recommended** method. You may choose to manually install the loader if you want, however it
+will not auto-update the loader or any of its dependencies. It is on you to update where necessary, but it is safer.
+Manual installation requires unchecking the `Use proxy` box and by selecting the appropriate game and loader versions.
 
-The `Create config` box will, when **NOT** using the proxy, create a launcher config for the game to use. It can be used
-by copying the argument from the installer and pasting it into your Project Zomboid launch options. The `pzexeconfig`
-argument is a game argument, **NOT** a JVM argument. If you do not know the difference, read the
-[Startup parameters][StartupParams] pzwiki page.
+Follow the **Recommended** usage instructions but do not press the `install` button. Configure the game version, loader
+version, and any other options accordingly.
 
-If you still need some help with usage of game arguments in Steam, you should read
-[Startup parameters - From the Steam application][StartupParamsSub].
+</details>
+
+<details>
+<summary>Alternative</summary>
+
+If you are using the proxy and do not want to use the installer, you may download the proxy JAR from the
+[latest release][LeafLoaderProxyLatestRelease] and place it in the `.leaf/lib` folder; where `.leaf` is a folder that is
+(usually) alongside `projectzomboid.jar` (depends on JVM working directory).
+
+Installing leaf manually without using the proxy is also possible in a very similar way to above, however it will not be
+detailed in depth here as the average user is not recommended in doing so.
+
+</details>
+
+You do not need to enable the leaf loader mod in-game for it to be loaded by the proxy, and you may now subscribe to any
+Leaf mod on the Workshop. The loader will discover enabled game mods at the next game start and will prompt you to allow
+or deny them.
+
+If you need some help with usage of game arguments, you should read the
+[Startup parameters - From the Steam application][StartupParamsSub] which shows the correct way to use them.
 
 ### Configuration
 
-**(optional)** If you use leaf regularly either for development (as a developer) or production (as a user),
-`LEAF_CLIENT_GAME_PATH` and `LEAF_SERVER_GAME_PATH` environment variables may be set to allow for leaf to automatically
-detect the location of your game.
+#### Installer
+
+| Option           | Description                                                                         |
+|------------------|-------------------------------------------------------------------------------------|
+| `Game Version`   | Game version to target. Is disabled when `Use proxy` is active                      |
+| `Loader Version` | Loader version to install. Is disablwd when `Use proxy` is active                   |
+| `Game Location`  | Path to Project Zomboid Steam game installation                                     |
+| `Show unstable`  | Shows unstable game versions                                                        |
+| `Use proxy`      | Installs the [loader proxy][LeafLoaderProxy] instead of the loader itself           |
+| `Create config`  | Creates a game launcher config. Is disabled when `Use proxy` is active              |
+| `Create script`  | **NOT RECOMMENDED**. Creates a modified launch script. Only for server environments |
+
+#### Environment
+
+If you use leaf regularly either for development (as a developer) or production (as a user), `LEAF_CLIENT_GAME_PATH`
+and `LEAF_SERVER_GAME_PATH` environment variables may be set to allow leaf to automatically detect the location of the
+game.
+
+### What Actually Happens
+
+At the time of installation (the 'install' button) the installer will, depending on installation method, download either
+[leaf-loader-proxy][LeafLoaderProxy] or [leaf-loader][LeafLoader] and its dependencies.
+
+The installer contacts both the [leaf][Leaf] GitHub repository and the configured Maven repository. The leaf manifest
+repostiory hosts manifest content for both the game (file hashes, version information, etc) and for the loader's
+`leaf-installer.json` meta (loader dependencies to be downloaded, etc). The configured Maven is used to download
+artefacts from (loader-proxy, loader, etc).
 
 ### Development
 
@@ -69,8 +123,8 @@ You can build the project like so:
 ./gradlew build
 ```
 
-For developing your own Leaf mods, you will want to read the [Leaf][PZWikiPage] wiki page which will contain a top-down summary
-of the entire leaf project.
+For developing your own Leaf mods, you should read the [Leaf][PZWikiPage] wiki page which will contain a top-down
+summary of the entire leaf project.
 
 ### Support
 
@@ -87,7 +141,10 @@ official [Project Zomboid Modding Community](https://discord.gg/2Vr6Wyh6Am) Disc
 
 [JarFix]: https://johann.loefflmann.net/en/software/jarfix/index.html
 [LeafInstallerLatestRelease]: https://github.com/aoqia194/leaf-installer/releases/latest
-[LeafLoaderGitHub]: https://github.com/aoqia194/leaf-loader
+[Leaf]: https://github.com/aoqia194/leaf
+[LeafLoader]: https://github.com/aoqia194/leaf-loader
+[LeafLoaderProxy]: https://github.com/aoqia194/leaf-loader-proxy
+[LeafLoaderProxyLatestRelease]: https://github.com/aoqia194/leaf-loader-proxy/releases/latest
 [LeafLoaderWorkshop]: https://steamcommunity.com/sharedfiles/filedetails/?id=3776625738
 [PZWikiPage]: https://pzwiki.net/wiki/Leaf
 [StartupParams]: https://pzwiki.net/wiki/Startup_parameters
