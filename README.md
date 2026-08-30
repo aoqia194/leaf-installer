@@ -19,13 +19,13 @@
 ### Requirements
 
 - Java 17 or higher
-- **(optional)** [JarFix][1] \
+- **(optional)** [JarFix][JarFix] \
   <small>Useful if you are on Windows and double-clicking the installer JAR doesn't open it.</small>
 
 ### Installation
 
-The primary use-case for this project is to install the [leaf-loader][2] and its dependencies. The only thing you need
-to do is download the JAR linked in the [latest release][3].
+The primary use-case for this project is to install [leaf-loader][LeafLoaderGitHub] and its dependencies. The only thing you need
+to do is download the JAR linked in the [latest release][LeafInstallerLatestRelease].
 
 ### Usage
 
@@ -33,7 +33,7 @@ to do is download the JAR linked in the [latest release][3].
 2. Choose the environment -- client/server
 3. Check the game path is set correctly
 4. Press install
-5. Subscribe to the **[Leaf Loader][4]** mod on the Steam Workshop
+5. Subscribe to the **[Leaf Loader][LeafLoaderWorkshop]** mod on the Steam Workshop
 6. Copy the arg to your PZ launch options in Steam using `Copy arg` button (read below for help)
 
 ***It really is that easy!***
@@ -50,10 +50,10 @@ versions.
 The `Create config` box will, when **NOT** using the proxy, create a launcher config for the game to use. It can be used
 by copying the argument from the installer and pasting it into your Project Zomboid launch options. The `pzexeconfig`
 argument is a game argument, **NOT** a JVM argument. If you do not know the difference, read the
-[Startup parameters][4] pzwiki page.
+[Startup parameters][StartupParams] pzwiki page.
 
 If you still need some help with usage of game arguments in Steam, you should read
-[Startup parameters - From the Steam application][5].
+[Startup parameters - From the Steam application][StartupParamsSub].
 
 ### Configuration
 
@@ -69,7 +69,7 @@ You can build the project like so:
 ./gradlew build
 ```
 
-For developing your own Leaf mods, you will want to read the [Leaf][7] wiki page which will contain a top-down summary
+For developing your own Leaf mods, you will want to read the [Leaf][PZWikiPage] wiki page which will contain a top-down summary
 of the entire leaf project.
 
 ### Support
@@ -85,10 +85,10 @@ official [Project Zomboid Modding Community](https://discord.gg/2Vr6Wyh6Am) Disc
 - electrisoma
 - [SimKDT](https://github.com/SimKDT)
 
-[1]: https://johann.loefflmann.net/en/software/jarfix/index.html
-[2]: https://github.com/aoqia194/leaf-loader
-[3]: https://github.com/aoqia194/leaf-installer/releases/latest
-[4]: https://steamcommunity.com/sharedfiles/filedetails/?id=3776625738
-[5]: https://pzwiki.net/wiki/Startup_parameters
-[6]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
-[7]: https://pzwiki.net/wiki/Leaf
+[JarFix]: https://johann.loefflmann.net/en/software/jarfix/index.html
+[LeafInstallerLatestRelease]: https://github.com/aoqia194/leaf-installer/releases/latest
+[LeafLoaderGitHub]: https://github.com/aoqia194/leaf-loader
+[LeafLoaderWorkshop]: https://steamcommunity.com/sharedfiles/filedetails/?id=3776625738
+[PZWikiPage]: https://pzwiki.net/wiki/Leaf
+[StartupParams]: https://pzwiki.net/wiki/Startup_parameters
+[StartupParamsSub]: https://pzwiki.net/wiki/Startup_parameters#From_the_Steam_application
