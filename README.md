@@ -34,6 +34,7 @@ to do is download the JAR linked in the [latest release][3].
 3. Check the game path is set correctly
 4. Press install
 5. Subscribe to the **[Leaf Loader][4]** mod on the Steam Workshop
+6. Copy the arg to your PZ launch options in Steam using `Copy arg` button (read below for help)
 
 ***It really is that easy!***
 
