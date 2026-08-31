@@ -25,12 +25,10 @@ methods of installation, those being via proxy-loader and manual installation.
 - **(optional)** [JarFix][JarFix] \
   <small>Useful if you are on Windows and double-clicking the installer JAR doesn't open it.</small>
 
-### Installation
+### Usage
 
 The primary use-case for this project is to install [leaf-loader][LeafLoader] and its dependencies. The only thing you
 need to do is download the JAR linked in the [latest release][LeafInstallerLatestRelease].
-
-### Usage
 
 > [!CAUTION]
 > You should be informed about the potential risks of Java modding before installing *any* unofficial modding toolchain.
@@ -44,13 +42,23 @@ need to do is download the JAR linked in the [latest release][LeafInstallerLates
 <details open>
 <summary>Recommended</summary>
 
-1. Download the installer JAR from the [latest release][LeafInstallerLatestRelease] and run it via double-click \
+1. Download the installer JAR from the [latest release][LeafInstallerLatestRelease] 
+2. Run it via double-click \
    **Double-click may not work on Linux or Mac** - if so, run it via the terminal: `java -jar installer-1.2.0.jar`
-2. Choose the environment - client or server
-3. Check the game path is set correctly
-4. Press install
-5. Subscribe to the **[Leaf Loader][LeafLoaderWorkshop]** mod on the Steam Workshop
-6. Copy the arg to your PZ launch options in Steam using `Copy arg` button (read below for help)
+3. Choose the environment - client or server
+4. Check the game path is set correctly
+5. Press install
+6. Click the `Copy arg` button (it should give you something like `-javaagent:.leaf/lib/loader-proxy-0.1.1.jar`)
+7. Paste the arguments into your Steam launch options for Project Zomboid (read below for help)
+8. Add `--` after the arguments (see [Startup parameters - JVM arguments](https://pzwiki.net/wiki/Startup_parameters#JVM_arguments))
+9. Subscribe to the **[Leaf Loader][LeafLoaderWorkshop]** mod on the Steam Workshop
+
+You do not need to enable the leaf loader mod in-game for it to be loaded by the proxy, and you may now subscribe to any
+Leaf mod on the Workshop. The loader will discover enabled game mods at the next game start and will prompt you to allow
+or deny them.
+
+If you need some help with usage of game arguments, you should read the
+[Startup parameters - From the Steam application][StartupParamsSub] which shows the correct way to use them.
 
 </details>
 
@@ -78,13 +86,6 @@ detailed in depth here as the average user is not recommended in doing so.
 
 </details>
 
-You do not need to enable the leaf loader mod in-game for it to be loaded by the proxy, and you may now subscribe to any
-Leaf mod on the Workshop. The loader will discover enabled game mods at the next game start and will prompt you to allow
-or deny them.
-
-If you need some help with usage of game arguments, you should read the
-[Startup parameters - From the Steam application][StartupParamsSub] which shows the correct way to use them.
-
 ### Configuration
 
 #### Installer
@@ -92,7 +93,7 @@ If you need some help with usage of game arguments, you should read the
 | Option           | Description                                                                         |
 |------------------|-------------------------------------------------------------------------------------|
 | `Game Version`   | Game version to target. Is disabled when `Use proxy` is active                      |
-| `Loader Version` | Loader version to install. Is disablwd when `Use proxy` is active                   |
+| `Loader Version` | Loader version to install. Is disabled when `Use proxy` is active                   |
 | `Game Location`  | Path to Project Zomboid Steam game installation                                     |
 | `Show unstable`  | Shows unstable game versions                                                        |
 | `Use proxy`      | Installs the [loader proxy][LeafLoaderProxy] instead of the loader itself           |
