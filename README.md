@@ -81,8 +81,8 @@ If you are using the proxy and do not want to use the installer, you may downloa
 [latest release][LeafLoaderProxyLatestRelease] and place it in the `.leaf/lib` folder; where `.leaf` is a folder that is
 (usually) alongside `projectzomboid.jar` (depends on JVM working directory).
 
-Installing leaf manually without using the proxy is also possible in a very similar way to above, however it will not be
-detailed in depth here as the average user is not recommended in doing so.
+Installing leaf manually without using the proxy is also possible in a very similar way, however it will not be detailed
+in depth here as the average user is not recommended in doing so.
 
 </details>
 
