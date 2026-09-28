@@ -162,7 +162,7 @@ public class Utils {
     }
 
     public static void writeToFile(Path path, String string) throws IOException {
-        Files.write(path, string.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(path, string);
     }
 
     public static String getProfileIcon() {
