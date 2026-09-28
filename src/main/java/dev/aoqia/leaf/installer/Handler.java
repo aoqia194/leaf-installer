@@ -167,9 +167,10 @@ public abstract class Handler implements InstallerProgress {
                         String tag = Main.LATEST_PROXY_NATIVE_TAG;
                         fmt += String.format("-agentlib:.leaf/lib/native-%s.dll",
                             tag.startsWith("v") ? tag.substring(1) : tag);
+                        fmt += " ";
                     }
 
-                    fmt += String.format(" -javaagent:.leaf/lib/%s", Utils.getLatestLoaderProxy().getJarName());
+                    fmt += String.format("-javaagent:.leaf/lib/%s", Utils.getLatestLoaderProxy().getJarName());
 
                     s = new StringSelection(fmt);
                 } catch (IOException exc) {
