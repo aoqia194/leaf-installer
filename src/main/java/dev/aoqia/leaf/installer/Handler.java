@@ -46,7 +46,6 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Locale;
 
-import dev.aoqia.leaf.installer.client.ClientHandler;
 import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.GameMetaHandler;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
@@ -62,9 +61,6 @@ public abstract class Handler implements InstallerProgress {
     protected static final int VERTICAL_SPACING = 6;
 
     private static final String SELECT_CUSTOM_ITEM = "(select custom)";
-
-    private JPanel pane;
-
     public JButton buttonInstall;
     public JButton copyArgButton;
     public JComboBox<String> gameVersionComboBox;
@@ -75,6 +71,7 @@ public abstract class Handler implements InstallerProgress {
     public JCheckBox loaderProxyCheckbox;
     public JComboBox<String> loaderVersionComboBox;
     public JCheckBox createConfigCheckbox;
+    private JPanel pane;
 
     protected static Component createSpacer() {
         return Box.createRigidArea(new Dimension(4, 0));
@@ -159,32 +156,33 @@ public abstract class Handler implements InstallerProgress {
         addRow(pane, c, null, statusLabel = new JLabel());
         statusLabel.setText(Utils.BUNDLE.getString("prompt.loading.versions"));
 
-       copyArgButton = new JButton(Utils.BUNDLE.getString("prompt.copy.arg"));
-       copyArgButton.addActionListener(e -> {
-           StringSelection s;
-           if (loaderProxyCheckbox.isSelected()) {
-               try {
-                   String fmt = "";
+        copyArgButton = new JButton(Utils.BUNDLE.getString("prompt.copy.arg"));
+        copyArgButton.addActionListener(e -> {
+            StringSelection s;
+            if (loaderProxyCheckbox.isSelected()) {
+                try {
+                    String fmt = "";
 
-                   if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
-                       String tag = Main.LATEST_PROXY_NATIVE_TAG;
-                       fmt += String.format("-agentlib:.leaf/lib/native-%s.dll", tag.startsWith("v") ? tag.substring(1) : tag);
-                   }
+                    if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
+                        String tag = Main.LATEST_PROXY_NATIVE_TAG;
+                        fmt += String.format("-agentlib:.leaf/lib/native-%s.dll",
+                            tag.startsWith("v") ? tag.substring(1) : tag);
+                    }
 
-                   fmt += String.format(" -javaagent:.leaf/lib/%s", Utils.getLatestLoaderProxy().getJarName());
+                    fmt += String.format(" -javaagent:.leaf/lib/%s", Utils.getLatestLoaderProxy().getJarName());
 
-                   s = new StringSelection(fmt);
-               } catch (IOException exc) {
-                   error(exc);
-                   return;
-               }
-           } else {
-               s = new StringSelection(String.format("-pzexeconfig leaf-%s-%s.json",
-                   queryLoaderVersion().name, gameVersionComboBox.getSelectedItem()));
-           }
+                    s = new StringSelection(fmt);
+                } catch (IOException exc) {
+                    error(exc);
+                    return;
+                }
+            } else {
+                s = new StringSelection(String.format("-pzexeconfig leaf-%s-%s.json",
+                    queryLoaderVersion().name, gameVersionComboBox.getSelectedItem()));
+            }
 
-           Toolkit.getDefaultToolkit().getSystemClipboard().setContents(s, null);
-       });
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(s, null);
+        });
 
         buttonInstall = new JButton(Utils.BUNDLE.getString("prompt.install"));
         buttonInstall.addActionListener(e -> {
