@@ -51,7 +51,8 @@ public class Utils {
         new ResourceBundle.Control() {
             @Override
             public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
-                boolean reload) throws IllegalAccessException, InstantiationException, IOException {
+                boolean reload) throws IllegalAccessException, InstantiationException, IOException
+            {
                 final String bundleName = toBundleName(baseName, locale);
                 final String resourceName = toResourceName(bundleName, "properties").toLowerCase(Locale.ROOT);
 
