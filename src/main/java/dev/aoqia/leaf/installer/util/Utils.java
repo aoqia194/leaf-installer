@@ -46,7 +46,6 @@ import static dev.aoqia.leaf.installer.Main.JSON;
 
 public class Utils {
     public static final String LEAF_FOLDER = ".leaf";
-    public static final DateFormat ISO_8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     public static final ResourceBundle BUNDLE = ResourceBundle.getBundle("lang/installer", Locale.getDefault(),
         new ResourceBundle.Control() {
             @Override
