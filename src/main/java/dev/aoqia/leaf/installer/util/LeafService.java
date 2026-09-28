@@ -66,6 +66,20 @@ public final class LeafService {
                 clazz), path);
     }
 
+    public static void downloadLatestGitHubRelease(String repoOwner, String repoName, Path out) throws
+        IOException, InterruptedException
+    {
+        String tag = Utils.getGitHubReleaseTagForRepo(
+            URI.create(String.format("https://github.com/%s/%s/releases/latest", repoOwner, repoName)));
+        String version = tag.startsWith("v") ? tag.substring(1) : tag;
+
+        String filename = String.format("native-%s.dll", version);
+
+        downloadSubstitutedMaven(
+            String.format("https://github.com/%s/%s/releases/download/%s/%s", repoOwner, repoName, tag, filename),
+            out.resolve(filename));
+    }
+
     /**
      * Download url to file, substituting aoqia maven with fallbacks or overrides.
      */

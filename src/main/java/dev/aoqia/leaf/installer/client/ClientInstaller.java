@@ -27,6 +27,7 @@ import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.LaunchConfigUtil;
 import dev.aoqia.leaf.installer.util.LeafService;
 import dev.aoqia.leaf.installer.util.Library;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
 import dev.aoqia.leaf.installer.util.Reference;
 import dev.aoqia.leaf.installer.util.Utils;
 import dev.aoqia.leaf.installer.util.json.LoaderJson;
@@ -65,6 +66,15 @@ public class ClientInstaller {
         if (proxy) {
             LeafService.downloadSubstitutedMaven(proxyLib.getURL(),
                 leafLibDir.resolve("%s-%s.jar".formatted(proxyLib.artifactId, proxyLib.version)));
+
+            // Also download the proxy native on Windows which fixes a DLL load order issue
+            if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
+                try {
+                    LeafService.downloadLatestGitHubRelease("LeafPZ", "leaf-loader-proxy-native", leafLibDir);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Failed to download proxy native from GitHub", e);
+                }
+            }
         } else {
             LoaderJson loaderVersionJson = LeafService.queryMetaJson("dist/loader/%s.json".formatted(loaderVersion.name),
                 LoaderJson.class);

@@ -21,6 +21,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -134,6 +138,26 @@ public class Utils {
         }
 
         return new String(data, 0, offset, StandardCharsets.UTF_8);
+    }
+
+    public static String getGitHubReleaseTagForRepo(URI uri) throws IOException, InterruptedException {
+        @SuppressWarnings("resource")
+        HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
+
+        HttpRequest req = HttpRequest.newBuilder(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
+        HttpResponse<Void> resp = client.send(req, HttpResponse.BodyHandlers.discarding());
+
+        String location = resp.headers()
+            .firstValue("Location")
+            .orElseThrow(() -> new IllegalStateException("No redirect Location header found"));
+
+        String marker = "/tag/";
+        int idx = location.indexOf(marker);
+        if (idx < 0) {
+            throw new IllegalStateException("Unexpected redirect target: " + location);
+        }
+
+        return location.substring(idx + marker.length()).trim().split("\\s+")[0];
     }
 
     public static void writeToFile(Path path, String string) throws IOException {
