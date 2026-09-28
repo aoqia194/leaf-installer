@@ -15,7 +15,10 @@
  */
 package dev.aoqia.leaf.installer.server;
 
-import java.awt.*;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import java.awt.Desktop;
+import java.awt.GridBagConstraints;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,8 +34,6 @@ import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.OperatingSystem;
 import dev.aoqia.leaf.installer.util.Utils;
 
-import javax.swing.*;
-
 public class ServerHandler extends Handler {
     public JCheckBox createScriptCheckbox;
 
@@ -44,43 +45,6 @@ public class ServerHandler extends Handler {
     @Override
     public void install(boolean proxy) {
         installInternal(proxy);
-    }
-
-    private void installInternal(boolean proxy) {
-        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
-        boolean createConfig = createConfigCheckbox.isEnabled() && createConfigCheckbox.isSelected();
-        boolean createScript = createScriptCheckbox.isEnabled() && createScriptCheckbox.isSelected();
-
-        final LoaderVersion loaderVersion;
-        if (!proxy) {
-            loaderVersion = queryLoaderVersion();
-        } else {
-            try {
-                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
-            } catch (IOException exc) {
-                error(exc);
-                return;
-            }
-        }
-
-        System.out.println("Installing");
-
-        new Thread(() -> {
-            try {
-                Path pzPath = Paths.get(installLocation.getText()).toAbsolutePath();
-                if (!Files.exists(pzPath)) {
-                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
-                }
-
-                new ServerInstaller(pzPath, gameVersion, loaderVersion, this).install(proxy, createConfig, createScript);
-
-                ServerPostInstallDialog.show(this);
-            } catch (Exception e) {
-                error(e);
-            } finally {
-                buttonInstall.setEnabled(true);
-            }
-        }).start();
     }
 
     @Override
@@ -121,5 +85,43 @@ public class ServerHandler extends Handler {
 
         createScriptCheckbox = new JCheckBox(Utils.BUNDLE.getString("option.create.script"), false);
         addRow(pane, c, null, createScriptCheckbox);
+    }
+
+    private void installInternal(boolean proxy) {
+        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
+        boolean createConfig = createConfigCheckbox.isEnabled() && createConfigCheckbox.isSelected();
+        boolean createScript = createScriptCheckbox.isEnabled() && createScriptCheckbox.isSelected();
+
+        final LoaderVersion loaderVersion;
+        if (!proxy) {
+            loaderVersion = queryLoaderVersion();
+        } else {
+            try {
+                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
+            } catch (IOException exc) {
+                error(exc);
+                return;
+            }
+        }
+
+        System.out.println("Installing");
+
+        new Thread(() -> {
+            try {
+                Path pzPath = Paths.get(installLocation.getText()).toAbsolutePath();
+                if (!Files.exists(pzPath)) {
+                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
+                }
+
+                new ServerInstaller(pzPath, gameVersion, loaderVersion, this)
+                    .install(proxy, createConfig, createScript);
+
+                ServerPostInstallDialog.show(this);
+            } catch (Exception e) {
+                error(e);
+            } finally {
+                buttonInstall.setEnabled(true);
+            }
+        }).start();
     }
 }

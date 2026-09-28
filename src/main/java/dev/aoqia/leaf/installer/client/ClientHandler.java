@@ -15,9 +15,17 @@
  */
 package dev.aoqia.leaf.installer.client;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Desktop;
+import java.awt.GridBagConstraints;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,41 +50,6 @@ public class ClientHandler extends Handler {
     @Override
     public void install(boolean proxy) {
         installInternal(proxy);
-    }
-
-    private void installInternal(boolean proxy) {
-        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
-        boolean createConfig = createConfigCheckbox.isEnabled() && createConfigCheckbox.isSelected();
-
-        final LoaderVersion loaderVersion;
-        if (!proxy) {
-            loaderVersion = queryLoaderVersion();
-        } else {
-            try {
-                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
-            } catch (IOException exc) {
-                error(exc);
-                return;
-            }
-        }
-
-        System.out.println("Installing");
-
-        new Thread(() -> {
-            try {
-                Path pzPath = Utils.normaliseClientGamePath(Paths.get(installLocation.getText())).toAbsolutePath();
-                if (!Files.exists(pzPath)) {
-                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
-                }
-
-                new ClientInstaller(pzPath, gameVersion, loaderVersion, this).install(proxy, createConfig);
-                SwingUtilities.invokeLater(() -> showInstalledMessage(proxy, loaderVersion, gameVersion));
-            } catch (Exception e) {
-                error(e);
-            } finally {
-                buttonInstall.setEnabled(true);
-            }
-        }).start();
     }
 
     @Override
@@ -118,6 +91,41 @@ public class ClientHandler extends Handler {
     @Override
     public void setupPane2(JPanel pane, GridBagConstraints c, InstallerGui installerGui) {
         installLocation.setText(Utils.getClientGamePath().toString());
+    }
+
+    private void installInternal(boolean proxy) {
+        String gameVersion = (String) gameVersionComboBox.getSelectedItem();
+        boolean createConfig = createConfigCheckbox.isEnabled() && createConfigCheckbox.isSelected();
+
+        final LoaderVersion loaderVersion;
+        if (!proxy) {
+            loaderVersion = queryLoaderVersion();
+        } else {
+            try {
+                loaderVersion = new LoaderVersion(Utils.getLatestLoaderProxy().version);
+            } catch (IOException exc) {
+                error(exc);
+                return;
+            }
+        }
+
+        System.out.println("Installing");
+
+        new Thread(() -> {
+            try {
+                Path pzPath = Utils.normaliseClientGamePath(Paths.get(installLocation.getText())).toAbsolutePath();
+                if (!Files.exists(pzPath)) {
+                    throw new RuntimeException(Utils.BUNDLE.getString("progress.exception.no.launcher.directory"));
+                }
+
+                new ClientInstaller(pzPath, gameVersion, loaderVersion, this).install(proxy, createConfig);
+                SwingUtilities.invokeLater(() -> showInstalledMessage(proxy, loaderVersion, gameVersion));
+            } catch (Exception e) {
+                error(e);
+            } finally {
+                buttonInstall.setEnabled(true);
+            }
+        }).start();
     }
 
     private void showInstalledMessage(boolean proxy, LoaderVersion loaderVersion, String gameVersion) {
