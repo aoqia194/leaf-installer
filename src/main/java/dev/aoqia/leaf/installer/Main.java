@@ -38,7 +38,6 @@ public class Main {
 
     public static GameMetaHandler GAME_VERSION_META;
     public static GithubMetaHandler LOADER_META;
-    public static GithubMetaHandler LOADER_PROXY_META;
 
     public static void main(String[] args) {
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
@@ -67,7 +66,6 @@ public class Main {
 
         GAME_VERSION_META = new GameMetaHandler(Reference.ZOMBOID_VERSION_MANIFEST);
         LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
-        LOADER_PROXY_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader-proxy" });
 
         // Default to the help command in a headless environment
         if (GraphicsEnvironment.isHeadless() && command == null) {
