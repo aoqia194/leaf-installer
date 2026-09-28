@@ -16,6 +16,7 @@
 package dev.aoqia.leaf.installer;
 
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,8 @@ public class Main {
 
     public static GameMetaHandler GAME_VERSION_META;
     public static GithubMetaHandler LOADER_META;
+
+    public static String LATEST_PROXY_NATIVE_TAG = null;
 
     public static void main(String[] args) {
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
@@ -66,6 +69,14 @@ public class Main {
 
         GAME_VERSION_META = new GameMetaHandler(Reference.ZOMBOID_VERSION_MANIFEST);
         LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
+
+        if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
+            try {
+                LATEST_PROXY_NATIVE_TAG = LeafService.getLatestGitHubRelease("aoqia194", "leaf-loader-proxy-native");
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException("Failed to get latest proxy native tag", e);
+            }
+        }
 
         // Default to the help command in a headless environment
         if (GraphicsEnvironment.isHeadless() && command == null) {

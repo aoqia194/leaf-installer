@@ -51,6 +51,7 @@ import dev.aoqia.leaf.installer.util.ArgumentParser;
 import dev.aoqia.leaf.installer.util.GameMetaHandler;
 import dev.aoqia.leaf.installer.util.InstallerProgress;
 import dev.aoqia.leaf.installer.util.LoaderMetaHandler;
+import dev.aoqia.leaf.installer.util.OperatingSystem;
 import dev.aoqia.leaf.installer.util.Utils;
 
 import static dev.aoqia.leaf.installer.Main.GAME_VERSION_META;
@@ -163,7 +164,16 @@ public abstract class Handler implements InstallerProgress {
            StringSelection s;
            if (loaderProxyCheckbox.isSelected()) {
                try {
-                   s = new StringSelection("-javaagent:.leaf/lib/" + Utils.getLatestLoaderProxy().getJarName());
+                   String fmt = "";
+
+                   if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
+                       String tag = Main.LATEST_PROXY_NATIVE_TAG;
+                       fmt += String.format("-agentlib:.leaf/lib/native-%s.dll", tag.startsWith("v") ? tag.substring(1) : tag);
+                   }
+
+                   fmt += String.format(" -javaagent:.leaf/lib/%s", Utils.getLatestLoaderProxy().getJarName());
+
+                   s = new StringSelection(fmt);
                } catch (IOException exc) {
                    error(exc);
                    return;

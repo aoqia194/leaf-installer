@@ -69,8 +69,7 @@ public final class LeafService {
     public static void downloadLatestGitHubRelease(String repoOwner, String repoName, Path out) throws
         IOException, InterruptedException
     {
-        String tag = Utils.getGitHubReleaseTagForRepo(
-            URI.create(String.format("https://github.com/%s/%s/releases/latest", repoOwner, repoName)));
+        String tag = getLatestGitHubRelease(repoOwner, repoName);
         String version = tag.startsWith("v") ? tag.substring(1) : tag;
 
         String filename = String.format("native-%s.dll", version);
@@ -78,6 +77,13 @@ public final class LeafService {
         downloadSubstitutedMaven(
             String.format("https://github.com/%s/%s/releases/download/%s/%s", repoOwner, repoName, tag, filename),
             out.resolve(filename));
+    }
+
+    public static String getLatestGitHubRelease(String repoOwner, String repoName) throws IOException,
+        InterruptedException
+    {
+        return Utils.getGitHubReleaseTagForRepo(
+            URI.create(String.format("https://github.com/%s/%s/releases/latest", repoOwner, repoName)));
     }
 
     /**

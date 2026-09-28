@@ -76,8 +76,8 @@ public class ClientInstaller {
                 }
             }
         } else {
-            LoaderJson loaderVersionJson = LeafService.queryMetaJson("dist/loader/%s.json".formatted(loaderVersion.name),
-                LoaderJson.class);
+            LoaderJson loaderVersionJson = LeafService.queryMetaJson(
+                "dist/loader/%s.json".formatted(loaderVersion.name), LoaderJson.class);
             LoaderJson.Libraries libsJson = loaderVersionJson.libraries();
             String mainClass = loaderVersionJson.mainClass().client();
             String mainClassInternal = mainClass.replace(".", "/");
