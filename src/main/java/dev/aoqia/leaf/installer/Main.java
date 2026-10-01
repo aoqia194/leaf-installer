@@ -68,11 +68,11 @@ public class Main {
         }
 
         GAME_VERSION_META = new GameMetaHandler(Reference.ZOMBOID_VERSION_MANIFEST);
-        LOADER_META = new GithubMetaHandler("aoqia194", "leaf", "main", new String[] { "dist", "loader" });
+        LOADER_META = new GithubMetaHandler("LeafPZ", "leaf", "main", new String[] { "dist", "loader" });
 
         if (OperatingSystem.CURRENT == OperatingSystem.WINDOWS) {
             try {
-                LATEST_PROXY_NATIVE_TAG = LeafService.getLatestGitHubRelease("aoqia194", "leaf-loader-proxy-native");
+                LATEST_PROXY_NATIVE_TAG = LeafService.getLatestGitHubRelease("LeafPZ", "leaf-loader-proxy-native");
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException("Failed to get latest proxy native tag", e);
             }

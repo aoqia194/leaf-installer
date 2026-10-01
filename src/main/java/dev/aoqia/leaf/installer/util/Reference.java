@@ -18,7 +18,7 @@ package dev.aoqia.leaf.installer.util;
 public class Reference {
     public static final String DEFAULT_MAVEN_SERVER = "https://maven.aoqia.dev/releases/";
     public static final String DEFAULT_API_SERVER = "https://maven.aoqia.dev/api/";
-    static final String MANIFEST_REPOSITORY = "https://raw.githubusercontent.com/aoqia194/leaf/refs/heads/main/";
+    static final String MANIFEST_REPOSITORY = "https://raw.githubusercontent.com/LeafPZ/leaf/refs/heads/main/";
     public static final String ZOMBOID_VERSION_MANIFEST = "dist/manifests/index.json";
     static final String GITHUB_API = "https://api.github.com/";
     static final String DEFAULT_META_SERVER = MANIFEST_REPOSITORY;

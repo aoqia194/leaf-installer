@@ -3,15 +3,16 @@
 <h1>
     The universal installer for
     <a href="https://pzwiki.net/wiki/Leaf">
-        <img src="src/main/resources/icon.png" width="36"> leaf
+        <img src="https://github.com/LeafPZ.png" width="24px" alt="LeafPZ Icon">
+        leaf
     </a>
 </h1>
 
-![License](https://img.shields.io/github/license/aoqia194/leaf-installer?label=License)
+![License](https://img.shields.io/github/license/LeafPZ/leaf-installer?label=License)
 ![Gradle version](https://img.shields.io/badge/Gradle-9.7.1-teal?logo=gradle)
-![Build status](https://github.com/aoqia194/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build)
-![Downloads](https://img.shields.io/github/downloads/aoqia194/leaf-installer/total?label=Downloads)
-![Code Size](https://img.shields.io/github/languages/code-size/aoqia194/leaf-installer?label=Code%20Size)
+![Build status](https://github.com/LeafPZ/leaf-installer/actions/workflows/build.yml/badge.svg?branch=main&label=build)
+![Downloads](https://img.shields.io/github/downloads/LeafPZ/leaf-installer/total?label=Downloads)
+![Code Size](https://img.shields.io/github/languages/code-size/LeafPZ/leaf-installer?label=Code%20Size)
 ![Maven status](https://img.shields.io/website?url=https%3A%2F%2Fmaven.aoqia.dev%2F&label=Maven)
 
 </div>
@@ -138,11 +139,11 @@ official [Project Zomboid Modding Community](https://discord.gg/2Vr6Wyh6Am) Disc
 - [SimKDT](https://github.com/SimKDT)
 
 [JarFix]: https://johann.loefflmann.net/en/software/jarfix/index.html
-[LeafInstallerLatestRelease]: https://github.com/aoqia194/leaf-installer/releases/latest
-[Leaf]: https://github.com/aoqia194/leaf
-[LeafLoader]: https://github.com/aoqia194/leaf-loader
-[LeafLoaderProxy]: https://github.com/aoqia194/leaf-loader-proxy
-[LeafLoaderProxyLatestRelease]: https://github.com/aoqia194/leaf-loader-proxy/releases/latest
+[LeafInstallerLatestRelease]: https://github.com/LeafPZ/leaf-installer/releases/latest
+[Leaf]: https://github.com/LeafPZ/leaf
+[LeafLoader]: https://github.com/LeafPZ/leaf-loader
+[LeafLoaderProxy]: https://github.com/LeafPZ/leaf-loader-proxy
+[LeafLoaderProxyLatestRelease]: https://github.com/LeafPZ/leaf-loader-proxy/releases/latest
 [LeafLoaderWorkshop]: https://steamcommunity.com/sharedfiles/filedetails/?id=3776625738
 [PZWikiPage]: https://pzwiki.net/wiki/Leaf
 [StartupParams]: https://pzwiki.net/wiki/Startup_parameters
