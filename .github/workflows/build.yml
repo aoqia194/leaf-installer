@@ -2,16 +2,11 @@ name: Build
 
 on:
   push:
+    branches:
+      - '**'
   pull_request:
     branches:
       - main
-  workflow_call:
-  workflow_dispatch:
-  workflow_run:
-    workflows:
-      - manual
-    types:
-      - requested
 
 permissions:
   contents: read
@@ -25,13 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
     outputs:
       build: ${{ steps.filter.outputs.build }}
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@v4
+      - name: Checkout
+        # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        # v4
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
         id: filter
         with:
           filters: |
@@ -40,6 +37,7 @@ jobs:
               - 'gradle/**'
               - '*.gradle.kts'
               - 'gradle.properties'
+              - 'settings.gradle.kts'
             code:
               - 'src/**'
   build:
@@ -49,17 +47,17 @@ jobs:
     if: ${{ needs.check-changes.outputs.build == 'true' || needs.check-changes.outputs.code == 'true' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Setup Java
-        uses: actions/setup-java@v5
+        # v6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
         with:
           java-version: 17
           distribution: temurin
           cache: gradle
-
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-
+        # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6
       - name: Build
         run: ./gradlew build -S

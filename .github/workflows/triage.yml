@@ -1,4 +1,4 @@
-name: Triage new issues/PRs
+name: Triage
 
 on:
   issues:
@@ -9,29 +9,21 @@ on:
       - opened
 
 jobs:
-  add-triage-label:
-    name: Add needs-triage label
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'issues' && github.event.issue.labels == '') || (github.event_name == 'pull_request' && github.event.pull_request.labels == '')
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-      - run: gh issue edit "$ISSUE_URL" --add-label "status/needs-triage"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url }}
-  add-to-project:
+  triage:
     name: Add to project
     runs-on: ubuntu-latest
-    needs: add-triage-label
-    environment: triage
-    permissions:
-      repository-projects: write
     steps:
-      - uses: actions/add-to-project@v2
+      - name: Generate App Token
+        id: generate_app_token
+        # v3.2.0
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
         with:
-          project-url: https://github.com/users/${{ github.repository_owner }}/projects/6
-          github-token: ${{ secrets.PAT_LEAF_PROJECTS }}
-          labeled: status/needs-triage
-          label-operator: AND
+          client-id: ${{ secrets.TRIAGE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.TRIAGE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Add to project
+        # v2
+        uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd
+        with:
+          project-url: https://github.com/orgs/${{ github.repository_owner }}/projects/2
+          github-token: ${{ steps.generate_app_token.outputs.token }}

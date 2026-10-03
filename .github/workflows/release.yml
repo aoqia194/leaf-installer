@@ -23,29 +23,29 @@ jobs:
     name: Release
     needs: pre
     runs-on: ubuntu-latest
-    environment: publishing
     permissions:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
       - name: Setup Java
-        uses: actions/setup-java@v5
+        # v6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
         with:
-          java-version: 17
+          java-version: 25
           distribution: temurin
           cache: gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        # v6
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6
       # If this isn't a snapshot release, publish a snapshot release so that they are both up-to-date.
       - name: Sync Snapshot
         if: needs.pre.outputs.is_full_release == 'true'
         run: ./gradlew publish -S
         env:
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE_KEY }}
           ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           ORG_GRADLE_PROJECT_isSnapshot: true
@@ -53,14 +53,15 @@ jobs:
         run: ./gradlew publish -S
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
           ORG_GRADLE_PROJECT_mavenUsername: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_mavenPassword: ${{ secrets.MAVEN_PASSWORD }}
           ORG_GRADLE_PROJECT_isSnapshot: ${{ needs.pre.outputs.is_full_release != 'true' }}
       - name: Generate Changelog
         if: needs.pre.outputs.is_full_release == 'true'
         id: cliff
-        uses: orhun/git-cliff-action@v4
+        # v4
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff
         with:
           config: ".cliff.toml"
           args: --latest -v
@@ -68,9 +69,10 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
       - name: Create GitHub Release
         if: needs.pre.outputs.is_full_release == 'true'
-        uses: softprops/action-gh-release@v3
+        # v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           fail_on_unmatched_files: true
           files: |
-            build/libs/!(*-SNAPSHOT|*-sources|*-javadoc).jar*
+            build/libs/!(*-SNAPSHOT|*-sources|*-javadoc)*.jar*
           body: ${{ steps.cliff.outputs.content }}
